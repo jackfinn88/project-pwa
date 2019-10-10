@@ -6,21 +6,13 @@
 
 <ion-content class="ion-padding">
     <h1>Home Page</h1>
+
     <ion-list>
         <ion-item>
-            <ion-button href="/game">Button</ion-button>
+            <ion-button [routerLink]="['/game']">Game</ion-button>
         </ion-item>
         <ion-item>
-            <ion-button href="/game">Button</ion-button>
-        </ion-item>
-        <ion-item>
-            <ion-button href="/game">Button</ion-button>
-        </ion-item>
-        <ion-item>
-            <ion-button href="/game">Button</ion-button>
-        </ion-item>
-        <ion-item>
-            <ion-button href="/game">Button</ion-button>
+            <ion-button [routerLink]="['/map']">Map</ion-button>
         </ion-item>
     </ion-list>
 </ion-content>

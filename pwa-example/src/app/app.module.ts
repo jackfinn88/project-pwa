@@ -7,6 +7,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import { GameComponent } from './pages/game/game.component';
 import { HomeComponent } from './pages/home/home.component';
+import { MapComponent } from './pages/map/map.component';
 import { IonicModule } from '@ionic/angular';
 
 @NgModule({
@@ -14,6 +15,7 @@ import { IonicModule } from '@ionic/angular';
     AppComponent,
     HomeComponent,
     GameComponent,
+    MapComponent,
   ],
   imports: [
     BrowserModule,
