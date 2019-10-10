@@ -21,6 +21,7 @@
     "@angular/pwa": "^0.803.8",
     "@angular/router": "~8.0.0",
     "@angular/service-worker": "~8.0.0",
+    "@ionic/angular": "^4.11.0",
     "rxjs": "~6.4.0",
     "tslib": "^1.9.0",
     "zone.js": "~0.9.1"
@@ -44,6 +45,7 @@
     "protractor": "~5.4.0",
     "ts-node": "~7.0.0",
     "tslint": "~5.15.0",
-    "typescript": "~3.4.3"
+    "typescript": "~3.4.3",
+    "@ionic/angular-toolkit": "latest"
   }
 }
