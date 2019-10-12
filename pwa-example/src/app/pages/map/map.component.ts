@@ -1,16 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-// leaflet
+import { Component } from '@angular/core';
+import { Location } from '@angular/common';
 import * as L from 'leaflet';
 import 'leaflet-routing-machine';
-import { Location } from '@angular/common';
-
-declare var require: any;
 
 @Component({
     templateUrl: 'map.component.html',
     styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit {
+export class MapComponent {
     map: L.Map;
     userLocation: any;
     routingControl: L.Routing.Control;
@@ -23,10 +20,6 @@ export class MapComponent implements OnInit {
 
     goBack() {
         this.location.back();
-    }
-
-    ngOnInit() {
-        // this.initializeMap();
     }
 
     ngAfterViewInit() {
@@ -59,13 +52,12 @@ export class MapComponent implements OnInit {
         if (this.currentWaypoint) {
             this.removeWaypoint();
         };
+        const popupText = event.target.textContent;
         if (jobId) {
-            console.log('had id', event);
-            this.addWaypoint([this.userLocation.lat, this.userLocation.lng], [this.jobs[jobId - 1].lat, this.jobs[jobId - 1].lng], event.target.textContent);
+            this.addWaypoint([this.userLocation.lat, this.userLocation.lng], [this.jobs[jobId - 1].lat, this.jobs[jobId - 1].lng], popupText);
         } else {
-            console.log('no id', event);
             const randomLatLng = this.getRandomLatLng(this.map);
-            this.addWaypoint([this.userLocation.lat, this.userLocation.lng], [randomLatLng.lat, randomLatLng.lng], event.target.textContent);
+            this.addWaypoint([this.userLocation.lat, this.userLocation.lng], [randomLatLng.lat, randomLatLng.lng], popupText);
         }
     }
 

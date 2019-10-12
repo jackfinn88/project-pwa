@@ -1,18 +1,19 @@
 <ion-header>
     <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+                <ion-icon name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
         <ion-title>PortHub</ion-title>
+        <ion-buttons slot="end">
+            <ion-button>
+                <ion-icon name="options"></ion-icon>
+            </ion-button>
+        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
     <h1>Game Page</h1>
-
-    <ion-list>
-        <ion-item>
-            <ion-button [routerLink]="['/home']">Home</ion-button>
-        </ion-item>
-        <ion-item>
-            <ion-button [routerLink]="['/map']">Map</ion-button>
-        </ion-item>
-    </ion-list>
 </ion-content>
