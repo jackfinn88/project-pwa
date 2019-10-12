@@ -1,20 +1,24 @@
 <ion-header>
     <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+                <ion-icon name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
         <ion-title>PortHub</ion-title>
+        <ion-buttons slot="end">
+            <ion-button>
+                <ion-icon name="options"></ion-icon>
+            </ion-button>
+        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
     <h1>Map Page</h1>
-
-    <ion-list>
-        <ion-item>
-            <ion-button [routerLink]="['/home']">Home</ion-button>
-        </ion-item>
-        <ion-item>
-            <ion-button [routerLink]="['/game']">Game</ion-button>
-        </ion-item>
-    </ion-list>
+    <ion-button (click)="showJobPoints($event, 1)">Job 1</ion-button>
+    <ion-button (click)="showJobPoints($event, 2)">Job 2</ion-button>
+    <ion-button (click)="showJobPoints($event)">Random</ion-button>
 
     <div class="map-container">
         <div id="map"></div>
