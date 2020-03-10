@@ -1,0 +1,13 @@
+ion-content {
+    --overflow: hidden;
+}
+
+.inner-content {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+
+.map-view-container {
+    flex-grow: 1;
+}

@@ -12,6 +12,8 @@ export class ViewMapComponent {
     constructor(private _location: Location) { }
 
     goBack() {
-        this._location.back();
+        this.mapComponent.destroy().then(() => {
+            this._location.back();
+        });
     }
 }
