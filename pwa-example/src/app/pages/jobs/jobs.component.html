@@ -1,0 +1,56 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+                <ion-icon name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title>PortHub</ion-title>
+        <ion-buttons slot="end">
+            <ion-button>
+                <ion-icon name="options"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+    <!--HIDDEN MAP TO USE ITS BOUND PARAMETER WHEN CALCULATING LATLNGS-->
+    <div class="inner-content hide">
+        <div class="map-view-container">
+            <app-map-view>
+            </app-map-view>
+        </div>
+    </div>
+
+    <h1>Jobs Page</h1>
+
+    <ion-segment [(ngModel)]="segment">
+        <ion-segment-button value="available">
+            <ion-label>Available</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="player">
+            <ion-label>Current</ion-label>
+        </ion-segment-button>
+    </ion-segment>
+
+    <div class="segments" [ngSwitch]="segment">
+        <div *ngSwitchCase="'available'">
+            <ion-list>
+                <ion-item *ngFor="let job of availableJobsCollection; index as i" (click)="onJobItemClick($event)"
+                    [attr.id]="i">
+                    {{ job.name }} {{ math.floor(job.remaining / 1000) }}
+                </ion-item>
+            </ion-list>
+        </div>
+
+        <div *ngSwitchCase="'player'">
+            <ion-list>
+                <ion-item *ngFor="let job of playerJobsCollection; index as i" (click)="onJobItemClick($event)"
+                    [attr.id]="i">
+                    {{ job.name }} {{ math.floor(job.remaining / 1000) }}
+                </ion-item>
+            </ion-list>
+        </div>
+    </div>
+</ion-content>

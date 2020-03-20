@@ -1,0 +1,22 @@
+{
+    "jobs": [
+        {
+            "id": "0",
+            "title": "Wipe Down",
+            "description": "XXXX AND MORE",
+            "difficulty": 1,
+            "game": 1,
+            "exp": 100,
+            "cash": 500
+        },
+        {
+            "id": "1",
+            "title": "Data Recovery",
+            "description": "XXXX",
+            "difficulty": 2,
+            "game": 2,
+            "exp": 200,
+            "cash": 1000
+        }
+    ]
+}

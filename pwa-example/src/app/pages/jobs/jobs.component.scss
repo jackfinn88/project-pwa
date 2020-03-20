@@ -6,9 +6,18 @@ ion-content {
     display: flex;
     flex-flow: column;
     height: 100%;
-    padding: 1px 1px 20px 1px;
 }
 
 .map-view-container {
     flex-grow: 1;
+}
+
+.hide {
+    position: absolute;
+    top:0;
+    left:0;
+    bottom:0;
+    right:0;
+    transform: translateY(-120%);
+    -webkit-transform: translateY(-120%);
 }
