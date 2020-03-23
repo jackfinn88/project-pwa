@@ -6,14 +6,13 @@
 
 <ion-content class="ion-padding">
     <h1>Home Page</h1>
-    <h2>v6</h2>
+    <h2>v7</h2>
+
+    <ion-button id="logbutton" (click)="toggleLogin()">Login</ion-button>
 
     <ion-list lines="none">
         <ion-item text-center>
             <ion-button [routerLink]="['/jobs']">Jobs</ion-button>
-        </ion-item>
-        <ion-item text-center>
-            <ion-button [routerLink]="['/game']">Game</ion-button>
         </ion-item>
         <ion-item text-center>
             <ion-button [routerLink]="['/map']">Map</ion-button>

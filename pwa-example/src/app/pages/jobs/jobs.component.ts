@@ -12,12 +12,16 @@ import { latLng } from 'leaflet';
 })
 export class JobsComponent implements OnInit, OnDestroy {
     @ViewChild(MapViewComponent, { static: false }) mapComponent: MapViewComponent;
+    // flag to show loading spinner
+    loaded = false;
     // general job information
     jobsMetaData;
     // current data regarding available jobs
     availableJobsData;
     // maximum available jobs
     maxJobAllowed = 5;
+    // flag whther max has been reached
+    maxJobsReached;
     // current collection
     availableJobsCollection = [];
     // timer to update remaining time
@@ -28,6 +32,10 @@ export class JobsComponent implements OnInit, OnDestroy {
     nextJobTimer;
     // flag to restrict job creation to 1 at any time
     renewalInProcess = false;
+    // countdown count for view
+    countdown = 0;
+    // timer to update countdown value for view
+    countdownTimer;
     // player data
     playerData;
     // player's job collection
@@ -46,6 +54,8 @@ export class JobsComponent implements OnInit, OnDestroy {
         console.log('ngOnInit');
         this.setupJobData();
         this.setupPlayerData();
+
+        this.maxJobsReached = this.availableJobsCollection.length < this.maxJobAllowed ? false : true;
 
         this.checkJobRenewal();
 
@@ -93,6 +103,8 @@ export class JobsComponent implements OnInit, OnDestroy {
             let remaining = this.nextJobRenewal - currentTime;
             let countdown = remaining > 0 ? remaining : 0;
 
+            console.log(countdown)
+
             this.beginRenewal(countdown);
         }
     }
@@ -106,6 +118,14 @@ export class JobsComponent implements OnInit, OnDestroy {
         this.nextJobRenewal = Date.now() + countdown;
 
         if (!this.renewalInProcess) {
+            this.countdown = Math.floor(countdown / 1000);
+            this._cdr.detectChanges(); // required for updating view of data-binding
+            // show countdown
+            this.countdownTimer = setInterval(() => {
+                this.countdown--;
+                this._cdr.detectChanges(); // required for updating view of data-binding
+            }, 1000);
+
             // block subsequent calls
             this.renewalInProcess = true;
 
@@ -113,12 +133,13 @@ export class JobsComponent implements OnInit, OnDestroy {
             this.nextJobTimer = setTimeout(() => {
                 // unblock for next use
                 this.renewalInProcess = false;
+                clearInterval(this.countdownTimer);
 
                 // create job if still required
                 if (this.availableJobsCollection.length < this.maxJobAllowed) {
                     this.createJob();
                 } else {
-                    console.log('max jobs reached:', this.maxJobAllowed)
+                    console.log('max jobs reached:', this.maxJobAllowed);
                 }
             }, countdown);
         }
@@ -145,10 +166,19 @@ export class JobsComponent implements OnInit, OnDestroy {
         if (this.availableJobsCollection.length < this.maxJobAllowed) {
             // start renewal countdown
             if (!this.renewalInProcess) {
-                let countdown = Math.floor(Math.random() * 20000) + 5000;
+                this.maxJobsReached = false;
+                this._cdr.detectChanges();
+                let countdown = Math.floor(Math.random() * 10000) + 5000;
                 this.beginRenewal(countdown);
             }
+        } else {
+
+            this.maxJobsReached = true;
+            this._cdr.detectChanges();
         }
+
+        // remove loading spinner after first update
+        if (!this.loaded) this.loaded = true;
     }
 
     addJobToCollection(job) {
@@ -267,7 +297,8 @@ export class JobsComponent implements OnInit, OnDestroy {
         const toast = await this.toastController.create({
             message: message,
             duration: duration,
-            color: colour
+            color: colour,
+            cssClass: 'toast-message'
         });
         toast.present();
     }
@@ -291,20 +322,21 @@ export class JobsComponent implements OnInit, OnDestroy {
 
     // callback for button
     goBack() {
-        // destory map component prior to navigation
-        this.mapComponent.destroy().then(() => {
-            this._location.back();
-        })
+        this._location.back();
     }
 
     // cleanup
-    ngOnDestroy() {
+    async ngOnDestroy() {
         // clear current timers
+        clearInterval(this.countdownTimer);
         clearInterval(this.updateInterval);
         clearInterval(this.nextJobTimer);
 
         // save data
         this.saveJobData();
+
+        // remove map object
+        await this.mapComponent.destroy();
 
         // remove change detector
         this._cdr.detach();

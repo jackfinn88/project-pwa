@@ -1,16 +1,17 @@
-import { Component, OnInit, ViewChild, ElementRef, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, Input, OnDestroy } from '@angular/core';
 import * as L from 'leaflet';
 import 'leaflet-routing-machine';
 import { Router } from '@angular/router';
 import { ToastController, ModalController } from '@ionic/angular';
 import { GameModalComponent } from '../game-modal/game-modal.component';
+import { Subscription, fromEvent } from 'rxjs';
 
 @Component({
     selector: 'app-map-view',
     templateUrl: './map-view.component.html',
     styleUrls: ['./map-view.component.scss']
 })
-export class MapViewComponent implements OnInit {
+export class MapViewComponent implements OnInit, OnDestroy {
     @Input('interactive') isInteractive: boolean;
 
     @ViewChild('map', { read: ElementRef, static: false }) mapElementRef: ElementRef;
@@ -43,13 +44,25 @@ export class MapViewComponent implements OnInit {
         iconAnchor: [20, 56], // point of the icon which will correspond to marker's location
         shadowAnchor: [4, 34],  // the same for the shadow
     });
-
-    constructor(public modalController: ModalController, public toastController: ToastController, private _router: Router) { }
+    private backbuttonSubscription: Subscription;
+    constructor(public modalCtrl: ModalController, public toastController: ToastController, private _router: Router) { }
 
     ngOnInit() {
         this.getLocation();
         console.log(this.isInteractive);
         this.getPlayerData();
+
+        //
+
+        const event = fromEvent(document, 'backbutton');
+        this.backbuttonSubscription = event.subscribe(async () => {
+            console.log('backbutton');
+            const modal = await this.modalCtrl.getTop();
+            if (modal) {
+                console.log('close modal');
+                modal.dismiss();
+            }
+        });
     }
 
     getPlayerData() {
@@ -79,7 +92,8 @@ export class MapViewComponent implements OnInit {
         const toast = await this.toastController.create({
             message: message,
             duration: duration,
-            color: colour
+            color: colour,
+            cssClass: 'toast-message'
         });
         toast.present();
     }
@@ -168,12 +182,12 @@ export class MapViewComponent implements OnInit {
             this.jobMarkers = []; // tbd
             /*this.jobs.forEach((job, idx) => {
                 console.log('planting marker for job ' + (idx + 1));
-                marker = L.marker([job.lat, job.lng], { icon: this.markerIcon }).on('click', (e) => { this.onMarkerClick(e, idx) }).addTo(this.map);
+                marker = L.marker([job.lat, job.lng], { icon: this.markerIcon }).on('click', (e) => { this.onMarkerClick(e, idx, job) }).addTo(this.map);
                 this.jobMarkers.push(marker);
             });*/
             this.playerJobsCollection.forEach((job, idx) => {
                 console.log('planting marker for job ' + (idx + 1));
-                marker = L.marker([job.lat, job.lng], { icon: this.markerIcon }).on('click', (e) => { this.onMarkerClick(e, idx) }).addTo(this.map);
+                marker = L.marker([job.lat, job.lng], { icon: this.markerIcon }).on('click', (e) => { this.onMarkerClick(e, idx, job) }).addTo(this.map);
                 this.jobMarkers.push(marker);
             });
         }, 500);
@@ -221,26 +235,22 @@ export class MapViewComponent implements OnInit {
         });
     }
 
-    onMarkerClick(event: L.LeafletEvent, jobId: number): void {
-        const content = this.createPopupContent(jobId);
-        L.popup()
+    onMarkerClick(event: L.LeafletEvent, jobId: number, job: any): void {
+        const content = this.createPopupContent(jobId, job);
+        /*L.popup()
             .setLatLng([this.jobs[jobId].lat, this.jobs[jobId].lng])
+            .setContent(content).openOn(this.map);*/
+        L.popup()
+            .setLatLng([job.lat, job.lng])
             .setContent(content).openOn(this.map);
     }
 
-    /*onPlayBtnClick(event: MouseEvent, jobId: number): void {
-        console.log('Open game for Job ' + (jobId + 1));
-        this.destroy().then(() => {
-            this._router.navigateByUrl('/game');
-        })
-    }*/
-
-    async presentModal(gameId: number) {
+    async presentModal(gameId: number, job: any) {
         console.log('presentModal', gameId)
-        const modal = await this.modalController.create({
+        const modal = await this.modalCtrl.create({
             component: GameModalComponent,
             componentProps: {
-                'gameType': gameId
+                'job': job
             },
             cssClass: 'game-modal',
             animated: false,
@@ -248,13 +258,13 @@ export class MapViewComponent implements OnInit {
         return await modal.present();
     }
 
-    onPlayBtnClick(event: MouseEvent, jobId: number) {
+    onPlayBtnClick(event: MouseEvent, jobId: number, job: any) {
         // id is added to srcElement from ngFor, cast type to collect
         const id = (event as any).srcElement.id;
-        this.presentModal(id);
+        this.presentModal(jobId, job);
     }
 
-    createPopupContent(jobId: number): HTMLDivElement {
+    createPopupContent(jobId: number, job: any): HTMLDivElement {
         const container = document.createElement('div'),
             waypointBtn = document.createElement('ion-button'),
             playGameBtn = document.createElement('ion-button');
@@ -268,7 +278,7 @@ export class MapViewComponent implements OnInit {
         playGameBtn.textContent = 'Play';
         // playGameBtn.disabled = !this.jobs[jobId].inRange;
         playGameBtn.onclick = (e) => {
-            this.onPlayBtnClick(e, jobId);
+            this.onPlayBtnClick(e, jobId, job);
         }
 
         container.classList.add('popup-container');
@@ -320,7 +330,7 @@ export class MapViewComponent implements OnInit {
     }
 
     handleRoutingError(error: L.Routing.RoutingErrorEvent) {
-        this.presentToast('Error finding route.', 2000, 'danger');
+        this.presentToast('Error finding route', 2000, 'danger');
         console.log(error.error.message);
         console.log('ERROR:', error)
     }
@@ -384,6 +394,12 @@ export class MapViewComponent implements OnInit {
             this.map.remove();
             resolve();
         })
+    }
+
+    ngOnDestroy() {
+
+        console.log('ngOnDestroy');
+        this.backbuttonSubscription.unsubscribe();
     }
 }
 

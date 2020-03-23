@@ -15,7 +15,15 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-    <div class="game-container">
-        <div id="game"></div>
+    <div class="game-wrapper" [ngSwitch]="gameType">
+        <div *ngSwitchCase="'knightfall'" class="game-container knightfall-container">
+            <iframe class="iframe-game"
+                src="https://jlf40.brighton.domains/dump/angular/test/api/knightfall2/index.html"
+                frameborder="0"></iframe>
+        </div>
+
+        <div *ngSwitchCase="'starfall'" class="game-container starfall-container">
+            <div id="game"></div>
+        </div>
     </div>
 </ion-content>

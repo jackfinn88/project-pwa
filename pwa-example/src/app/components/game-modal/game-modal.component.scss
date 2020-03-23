@@ -1,13 +1,18 @@
+.game-wrapper {
+    width: 100%;
+    height: 100%;
+}
+
 .game-container {
     width: 100%;
     height: 100%;   
 }
 
-canvas {
-    display: block;
-    margin: 0;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+#game {
+    background-color: #222222;
+}
+
+.iframe-game {
+    width: 100%;
+    height: 100%;
 }

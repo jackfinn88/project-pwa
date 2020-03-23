@@ -14,6 +14,12 @@ export class JobModalComponent implements OnInit {
     constructor(private _navParams: NavParams, private _modalCtrl: ModalController) { }
 
     ngOnInit() {
+        // add fake history to prevent navigation from hardware back button
+        if (!window.history.state.modal) {
+            const modalState = { modal: true };
+            history.pushState(modalState, null);
+        }
+
         this.job = this._navParams.get('job');
         this.jobId = parseInt(this._navParams.get('id'), 10);
         this.view = this._navParams.get('view');
@@ -35,6 +41,9 @@ export class JobModalComponent implements OnInit {
     }
 
     async closeModal(data?) {
+        // closing by button doesn't trigger autoclose overlay service
+        // manually navigate from fake history
+        history.back();
         await this._modalCtrl.dismiss(data);
     }
 }

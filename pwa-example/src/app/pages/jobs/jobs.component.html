@@ -23,34 +23,43 @@
         </div>
     </div>
 
-    <h1>Jobs Page</h1>
+    <div *ngIf="!loaded" class="loading-spinner">
+        <ion-spinner name="crescent"></ion-spinner>
+        <h3>Loading Jobs</h3>
+    </div>
 
-    <ion-segment [(ngModel)]="segment">
-        <ion-segment-button value="available">
-            <ion-label>Available</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="player">
-            <ion-label>Current</ion-label>
-        </ion-segment-button>
-    </ion-segment>
+    <div *ngIf="loaded">
+        <h1>Jobs Page</h1>
 
-    <div class="segments" [ngSwitch]="segment">
-        <div *ngSwitchCase="'available'">
-            <ion-list>
-                <ion-item *ngFor="let job of availableJobsCollection; index as i" (click)="onJobItemClick($event)"
-                    [attr.id]="i">
-                    {{ job.name }} {{ math.floor(job.remaining / 1000) }}
-                </ion-item>
-            </ion-list>
-        </div>
+        <h6 [ngStyle]="{ 'color': this.maxJobsReached ? 'lightgrey' : 'black'}">Next job in: {{countdown}} seconds</h6>
 
-        <div *ngSwitchCase="'player'">
-            <ion-list>
-                <ion-item *ngFor="let job of playerJobsCollection; index as i" (click)="onJobItemClick($event)"
-                    [attr.id]="i">
-                    {{ job.name }} {{ math.floor(job.remaining / 1000) }}
-                </ion-item>
-            </ion-list>
+        <ion-segment [(ngModel)]="segment">
+            <ion-segment-button value="available">
+                <ion-label>Available</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="player">
+                <ion-label>Current</ion-label>
+            </ion-segment-button>
+        </ion-segment>
+
+        <div class="segments" [ngSwitch]="segment">
+            <div *ngSwitchCase="'available'">
+                <ion-list>
+                    <ion-item *ngFor="let job of availableJobsCollection; index as i" (click)="onJobItemClick($event)"
+                        [attr.id]="i">
+                        {{ job.name }} {{ math.floor(job.remaining / 1000) }}
+                    </ion-item>
+                </ion-list>
+            </div>
+
+            <div *ngSwitchCase="'player'">
+                <ion-list>
+                    <ion-item *ngFor="let job of playerJobsCollection; index as i" (click)="onJobItemClick($event)"
+                        [attr.id]="i">
+                        {{ job.name }} {{ math.floor(job.remaining / 1000) }}
+                    </ion-item>
+                </ion-list>
+            </div>
         </div>
     </div>
 </ion-content>

@@ -1,10 +1,25 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
+import { Router, NavigationStart } from '@angular/router';
+import { AutocloseOverlaysService } from './providers/autoclose-service';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
 })
-export class AppComponent { }
+export class AppComponent {
+    @HostListener('window:popstate', ['$event'])
+    onPopState() {
+        // use autoclose service to close any modal/popover/menu/actionsheet
+        this.autocloseService.trigger();
+    }
+    autocloseService: AutocloseOverlaysService;
+
+    constructor(autocloseOverlayService: AutocloseOverlaysService) {
+        this.autocloseService = autocloseOverlayService;
+    }
+
+
+}
 
 

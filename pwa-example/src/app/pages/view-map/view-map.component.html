@@ -15,6 +15,11 @@
 </ion-header>
 
 <ion-content>
+    <div *ngIf="!loaded" class="loading-spinner">
+        <ion-spinner name="crescent"></ion-spinner>
+        <h3>Loading Map</h3>
+    </div>
+
     <div class="inner-content">
         <div class="map-view-container">
             <app-map-view interactive="true">

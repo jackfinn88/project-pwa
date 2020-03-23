@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { ModalController, Platform } from '@ionic/angular';
 import { GameScene } from 'src/app/components/game/game-scene';
 import { WelcomeScene } from 'src/app/components/game/welcome-scene';
@@ -11,8 +11,16 @@ import { ScreenOrientation } from '@ionic-native/screen-orientation/ngx';
     styleUrls: ['./game-modal.component.scss']
 })
 export class GameModalComponent implements OnInit, OnDestroy {
-    @Input() gameType: any;
-
+    @HostListener('window:message', ['$event'])
+    onMessage(event) {
+        if (event.origin !== "https://jlf40.brighton.domains") {
+            return false;
+        } else {
+            console.log('Message:', event.data);
+        }
+    }
+    @Input() job: any;
+    gameType;
     fullScreenKey;
     config = {
         title: "Starfall",
@@ -36,21 +44,30 @@ export class GameModalComponent implements OnInit, OnDestroy {
     constructor(private screenOrientation: ScreenOrientation, private platform: Platform, private modalCtrl: ModalController) { }
 
     ngOnInit() {
-        // this.game = this.game;
-        console.log(this.game);
+        // add fake history to prevent navigation from hardware back button
+        if (!window.history.state.modal) {
+            const modalState = { modal: true };
+            history.pushState(modalState, null);
+        }
+
+        // get game type
+        this.gameType = this.job.game < 2 ? 'starfall' : 'knightfall';
+
         this.fullScreenKey = this.getRequestFullScreenKey();
     }
 
     ngAfterViewInit() {
-        this.game = new StarfallGame(this.config);
-        // this.resize();
-        window.addEventListener("resize", this.resize, false);
+        if (this.job.game < 2) {
+            this.game = new StarfallGame(this.config);
 
-        // tbd: force landscape
-        this.platform.ready().then(() => {
-            console.log('platform ready')
-            this.enterFullScreen();
-        })
+            // tbd: force landscape
+            this.platform.ready().then(() => {
+                console.log('platform ready');
+                document.querySelector('canvas').style.width = '608px';
+                window.addEventListener("resize", this.resize, false);
+                this.enterFullScreen();
+            });
+        }
     }
 
     enterFullScreen() {
@@ -78,6 +95,9 @@ export class GameModalComponent implements OnInit, OnDestroy {
     }
 
     async closeModal() {
+        // closing by button doesn't trigger autoclose overlay service
+        // manually navigate from fake history
+        history.back();
         await this.modalCtrl.dismiss();
     }
 
@@ -98,9 +118,11 @@ export class GameModalComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.screenOrientation.lock(this.screenOrientation.ORIENTATIONS.PORTRAIT);
-        this.screenOrientation.unlock();
-        let exitFullScreen = 'document.' + this.fullScreenKey.exit + '()';
-        eval(exitFullScreen);
+        if (this.job.game < 2) {
+            this.screenOrientation.lock(this.screenOrientation.ORIENTATIONS.PORTRAIT);
+            this.screenOrientation.unlock();
+            let exitFullScreen = 'document.' + this.fullScreenKey.exit + '()';
+            eval(exitFullScreen);
+        }
     }
 }

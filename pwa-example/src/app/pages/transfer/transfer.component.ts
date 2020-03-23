@@ -41,6 +41,11 @@ export class TransferComponent implements OnInit {
             this.apiService.createRecord(form.value).subscribe((record: Record) => {
                 console.log("Record created, ", record);
                 this.getRecords();
+
+                if (record) {
+                    // tbd: log user in - localstorage
+                    // localStorage.setItem('logged', JSON.stringify({ logged: true }));
+                }
             });
         }
 
