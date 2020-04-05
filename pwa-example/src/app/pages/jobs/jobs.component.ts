@@ -1,17 +1,14 @@
-import { Component, ViewChild, ChangeDetectorRef, OnDestroy, OnInit } from '@angular/core';
+import { Component, ChangeDetectorRef, OnDestroy, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { MapViewComponent } from 'src/app/components/map-view/map-view.component';
 import { ModalController, ToastController } from '@ionic/angular';
 import { JobModalComponent } from '../../components/job-modal/job-modal.component'
 import { JobsService } from 'src/app/providers/job-service';
-import { latLng } from 'leaflet';
 
 @Component({
     templateUrl: 'jobs.component.html',
     styleUrls: ['./jobs.component.scss'],
 })
 export class JobsComponent implements OnInit, OnDestroy {
-    @ViewChild(MapViewComponent, { static: false }) mapComponent: MapViewComponent;
     // flag to show loading spinner
     loaded = false;
     // general job information
@@ -38,6 +35,8 @@ export class JobsComponent implements OnInit, OnDestroy {
     countdownTimer;
     // player data
     playerData;
+    // save data
+    saveData;
     // player's job collection
     playerJobsCollection = [];
     // for use in html data-binding
@@ -52,8 +51,7 @@ export class JobsComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         console.log('ngOnInit');
-        this.setupJobData();
-        this.setupPlayerData();
+        this.setupData();
 
         this.maxJobsReached = this.availableJobsCollection.length < this.maxJobAllowed ? false : true;
 
@@ -65,33 +63,14 @@ export class JobsComponent implements OnInit, OnDestroy {
         }, 1000);
     }
 
-    setupJobData() {
-        console.log('setupJobData')
-        // check job data in storage
-        let jobDataFromStorage = JSON.parse(localStorage.getItem('jobs'));
+    setupData() {
+        this.saveData = JSON.parse(localStorage.getItem('saveData'));
 
-        // create new object if none
-        this.availableJobsData = jobDataFromStorage ? jobDataFromStorage : {
-            'next-job-renewal': 0,
-            'jobs': this.availableJobsCollection
-        };
-
-        // extract data
+        this.availableJobsData = this.saveData.currentUser["job-data"];
         this.nextJobRenewal = this.availableJobsData['next-job-renewal'];
         this.availableJobsCollection = this.availableJobsData['jobs'];
-    }
 
-    setupPlayerData() {
-        console.log('setupPlayerData')
-        // check job data in storage
-        let playerDataFromStorage = JSON.parse(localStorage.getItem('player'));
-
-        // create new object if none
-        this.playerData = playerDataFromStorage ? playerDataFromStorage : {
-            'active-jobs': this.playerJobsCollection
-        };
-
-        // extract data
+        this.playerData = this.saveData.currentUser;
         this.playerJobsCollection = this.playerData['active-jobs'];
     }
 
@@ -183,97 +162,165 @@ export class JobsComponent implements OnInit, OnDestroy {
 
     addJobToCollection(job) {
         console.log('addJobToCollection', job);
-
-        // filter out
+        // use filter to check job exists AND:
         let jobs = this.availableJobsCollection.filter((availableJob) => {
+            // a) add to player jobs collection
             if (availableJob.created === job.created) this.playerJobsCollection.push(availableJob);
+            // b) remove from available jobs collection
             return availableJob.created !== job.created;
         });
+
+        // if a job was removed while modal was open, it could not have been filtered - lengths will match
         if (this.availableJobsCollection.length === jobs.length) {
             this.presentToast('Job is no longer active', 2000, 'danger');
+        } else { // job was added to player - lengths won't match
+            // update available collection
+            this.availableJobsCollection = jobs;
+            this._cdr.detectChanges(); // required for updating view of data-binding
+
+            this.save();
         }
-        console.log(jobs)
-        this.availableJobsCollection = jobs;
-        this.saveJobData();
-        this.savePlayerData();
-        this._cdr.detectChanges(); // required for updating view of data-binding
     }
 
     removeJobFromCollection(id) {
         console.log('removeJobFromCollection');
         this.playerJobsCollection.splice(id, 1);
-        this.savePlayerData();
         this._cdr.detectChanges(); // required for updating view of data-binding
+
+        this.save();
     }
 
     // present modal for job item
     onJobItemClick(event) {
+        console.log('onJobItemClick', event);
         // id is attached to srcElement from ngFor
         const id = event.srcElement.id;
-        this.presentModal(id);
+        setTimeout(() => {
+            this.presentModal(id);
+        }, 100);
     }
 
     // create new available job
-    createJob() {
+    createJob() { // tbd: reinstate geolocation
         console.log('createJob');
-        // map instance needs to be ready to retrieve random lat/lngs
-        const mapIsReady = this.checkMapIsLoaded();
+        let userCoords = { 'lat': 50.8579, 'lng': 0.5767 };
+        // if (navigator.geolocation) {
+        // navigator.geolocation.getCurrentPosition((position) => {
+        // gather time data
+        let currentTime = Date.now();
+        let seconds = 60;
+        let duration = seconds * 1000;
 
-        if (!mapIsReady) {
-            // wait one frame then call again
-            requestAnimationFrame(() => {
-                this.createJob();
-            })
+        // generate random job
+        let randMax = this.jobsMetaData.jobs.length;
+        let rand = Math.floor(Math.random() * randMax);
+        let randJob = this.jobsMetaData.jobs[rand];
+
+        // let randDur = Math.floor(Math.random() * 60) + 40;
+        // duration = randDur;
+
+        // generate random coords
+        // let centre = { 'lat': position.coords.latitude, 'lng': position.coords.latitude }; // user location is centre
+        let centre = { 'lat': userCoords.lat, 'lng': userCoords.lng }; // user location is centre
+        let radius = 1000; // metres
+        let latlng = this.randomLatLng(centre, radius);
+
+        let sender;
+        if (Math.random() > 0.5) {
+            sender = 'Lester';
+            randJob.colour = 'green';
         } else {
-            const currentTime = Date.now();
-            const seconds = 60;
-            let duration = seconds * 1000;
-
-            const randMax = this.jobsMetaData.jobs.length;
-            const rand = Math.floor(Math.random() * randMax);
-            const randJob = this.jobsMetaData.jobs[rand];
-
-            // const randDur = Math.floor(Math.random() * 60) + 40;
-            // duration = randDur;
-
-            const latlng = this.mapComponent.getRandomLatLng()
-
-            this.availableJobsCollection.push({
-                name: randJob.title,
-                description: randJob.description,
-                difficulty: randJob.difficulty,
-                game: randJob.game,
-                experience: randJob.exp,
-                cash: randJob.cash,
-                // add dynamic data
-                created: currentTime,
-                duration: duration,
-                remaining: duration,
-                lat: latlng.lat,
-                lng: latlng.lng,
-            });
-            this._cdr.detectChanges(); // required for updating view of data-binding
-
-            // save new job
-            this.saveJobData();
+            sender = 'Unknown';
+            randJob.colour = 'gray';
         }
+        let type;
+        if (Math.random() > 0.3) {
+            type = 'Local';
+        } else {
+            type = 'Remote';
+            randJob.cash = randJob.cash * .8;
+            latlng = userCoords;
+        }
+        console.log('type:', type, randJob.cash);
+
+        this.availableJobsCollection.push({
+            name: randJob.title,
+            description: randJob.description,
+            difficulty: randJob.difficulty,
+            game: randJob.game,
+            experience: randJob.exp,
+            cash: randJob.cash,
+            // add dynamic data
+            sender: sender,
+            type: type,
+            created: currentTime,
+            duration: duration,
+            remaining: duration,
+            lat: latlng.lat,
+            lng: latlng.lng,
+            colour: randJob.colour
+        });
+        this._cdr.detectChanges(); // required for updating view of data-binding
+
+        // save new job
+        this.save();
+        /*},
+            (err) => {
+                // geolocation available but getCurrentPosition failed, wait 1 frame then try again
+                requestAnimationFrame(() => {
+                    this.createJob();
+                })
+            }
+        );
+    } else {
+        this.presentToast('Geolocation is not supported', 2000, 'danger');
+    }*/
     }
 
-    // check map component is ready
-    checkMapIsLoaded(): boolean {
-        return this.mapComponent && this.mapComponent.loaded;
+    //Calc the distance between 2 coordinates as the crow flies
+    distance(lat1, lon1, lat2, lon2) {
+        var R = 6371000;
+        var a = 0.5 - Math.cos((lat2 - lat1) * Math.PI / 180) / 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * (1 - Math.cos((lon2 - lon1) * Math.PI / 180)) / 2;
+        return R * 2 * Math.asin(Math.sqrt(a));
+    }
+
+    randomLatLng(center, radius) {
+        var y0 = center.lat;
+        var x0 = center.lng;
+        var rd = radius / 111300; //about 111300 meters in one degree
+
+        var u = Math.random();
+        var v = Math.random();
+
+        var w = rd * Math.sqrt(u);
+        var t = 2 * Math.PI * v;
+        var x = w * Math.cos(t);
+        var y = w * Math.sin(t);
+
+        //Adjust the x-coordinate for the shrinking of the east-west distances
+        var xp = x / Math.cos(y0);
+
+        var newlat = y + y0;
+        var newlon = xp + x0;
+
+        return {
+            lat: newlat.toFixed(5),
+            lng: newlon.toFixed(5)
+        };
     }
 
     // show job modal component
     async presentModal(jobId: number) {
-        console.log('presentModal');
+        console.log('presentModal', jobId);
         const job = this.segment === 'available' ? this.availableJobsCollection[jobId] : this.playerJobsCollection[jobId];
+        console.log('JOB', job);
         const modal = await this.modalController.create({
             component: JobModalComponent,
             componentProps: {
                 'id': jobId,
                 'job': job,
-                'view': this.segment
+                'view': this.segment,
+                'can-add': this.playerJobsCollection.length < this.maxJobAllowed ? true : false
             },
             cssClass: 'job-modal',
             animated: false,
@@ -286,7 +333,7 @@ export class JobsComponent implements OnInit, OnDestroy {
                 if (response.added) {
                     this.addJobToCollection(response.job);
                 } else if (response.removed) {
-                    this.removeJobFromCollection(response.job);
+                    this.removeJobFromCollection(jobId);
                 }
             }
         });
@@ -303,21 +350,21 @@ export class JobsComponent implements OnInit, OnDestroy {
         toast.present();
     }
 
-    // store current data regarding available jobs
-    saveJobData() {
-        console.log('saveJobData');
+    save() {
+        this.playerData['active-jobs'] = this.playerJobsCollection;
         this.availableJobsData['next-job-renewal'] = this.nextJobRenewal;
         this.availableJobsData['jobs'] = this.availableJobsCollection;
 
-        localStorage.setItem('jobs', JSON.stringify(this.availableJobsData));
-    }
+        this.playerData["job-data"] = this.availableJobsData;
 
-    // store current data regarding available jobs
-    savePlayerData() {
-        console.log('savePlayerData');
-        this.playerData['active-jobs'] = this.playerJobsCollection;
+        this.saveData.currentUser = this.playerData;
 
-        localStorage.setItem('player', JSON.stringify(this.playerData));
+        let idx = this.saveData.accounts.findIndex(account => account.id === this.playerData.id);
+        this.saveData.accounts.splice(idx, 1, this.playerData);
+
+        localStorage.setItem('saveData', JSON.stringify(this.saveData));
+
+        console.log('save', this.playerData);
     }
 
     // callback for button
@@ -326,17 +373,14 @@ export class JobsComponent implements OnInit, OnDestroy {
     }
 
     // cleanup
-    async ngOnDestroy() {
+    ngOnDestroy() {
         // clear current timers
         clearInterval(this.countdownTimer);
         clearInterval(this.updateInterval);
         clearInterval(this.nextJobTimer);
 
         // save data
-        this.saveJobData();
-
-        // remove map object
-        await this.mapComponent.destroy();
+        this.save();
 
         // remove change detector
         this._cdr.detach();

@@ -5,33 +5,29 @@
                 <ion-icon name="arrow-back"></ion-icon>
             </ion-button>
         </ion-buttons>
-        <ion-title>PortHub</ion-title>
+        <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
         <ion-buttons slot="end">
             <ion-button>
-                <ion-icon name="options"></ion-icon>
+                <ion-icon></ion-icon>
             </ion-button>
         </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-    <!--HIDDEN MAP TO USE ITS BOUND PARAMETER WHEN CALCULATING LATLNGS-->
-    <div class="inner-content hide">
-        <div class="map-view-container">
-            <app-map-view>
-            </app-map-view>
-        </div>
-    </div>
+<app-statbar [user]="saveData.currentUser.user" [cash]="saveData.currentUser.cash"
+    [webcash]="saveData.currentUser.web_cash" [exp]="saveData.currentUser.exp">
+</app-statbar>
 
+<ion-content>
     <div *ngIf="!loaded" class="loading-spinner">
         <ion-spinner name="crescent"></ion-spinner>
         <h3>Loading Jobs</h3>
     </div>
 
-    <div *ngIf="loaded">
+    <div *ngIf="loaded" class="job-content">
         <h1>Jobs Page</h1>
 
-        <h6 [ngStyle]="{ 'color': this.maxJobsReached ? 'lightgrey' : 'black'}">Next job in: {{countdown}} seconds</h6>
+        <h6 [ngStyle]="{ 'color': this.maxJobsReached ? 'gray' : 'white'}">Next job in: {{countdown}} seconds</h6>
 
         <ion-segment [(ngModel)]="segment">
             <ion-segment-button value="available">
@@ -43,20 +39,46 @@
         </ion-segment>
 
         <div class="segments" [ngSwitch]="segment">
-            <div *ngSwitchCase="'available'">
-                <ion-list>
+            <div *ngSwitchCase="'available'" class="available-list">
+                <ion-list class="jobs-list" lines="none">
                     <ion-item *ngFor="let job of availableJobsCollection; index as i" (click)="onJobItemClick($event)"
                         [attr.id]="i">
-                        {{ job.name }} {{ math.floor(job.remaining / 1000) }}
+                        <div class="job-sender-thumb" [ngStyle]="{ 'background': job.colour}">
+                            <div>{{ job.sender.charAt(0) }}</div>
+                        </div>
+
+                        <div class="job-info">
+                            <div class="info-sender">{{ job.sender }}</div>
+                            <div class="info-remaining">Remaining time: </div>
+                            <div class="info-time">{{ math.floor(job.remaining / 1000) }}</div>
+                            <div class="info-description">{{ job.description }}text and text more text longer
+                                texerert text text</div>
+                        </div>
+
+                        <div class="job-badge">
+                            <ion-badge color="primary">{{ job.type }}</ion-badge>
+                        </div>
                     </ion-item>
                 </ion-list>
             </div>
 
-            <div *ngSwitchCase="'player'">
-                <ion-list>
+            <div *ngSwitchCase="'player'" class="player-list">
+                <ion-list class="jobs-list" lines="none">
                     <ion-item *ngFor="let job of playerJobsCollection; index as i" (click)="onJobItemClick($event)"
                         [attr.id]="i">
-                        {{ job.name }} {{ math.floor(job.remaining / 1000) }}
+                        <div class="job-sender-thumb" [ngStyle]="{ 'background': job.colour}">
+                            <div>{{ job.sender.charAt(0) }}</div>
+                        </div>
+
+                        <div class="job-info">
+                            <div class="info-sender">{{ job.sender }}</div>
+                            <div class="info-description">{{ job.description }}text and text more text longer texerert
+                                text text</div>
+                        </div>
+
+                        <div class="job-badge">
+                            <ion-badge color="primary">{{ job.type }}</ion-badge>
+                        </div>
                     </ion-item>
                 </ion-list>
             </div>

@@ -1,0 +1,64 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="goBack()">
+                <ion-icon name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
+        <ion-buttons slot="end">
+            <ion-button>
+                <ion-icon></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<app-statbar [user]="player.user" [cash]="player.cash" [webcash]="player.web_cash" [exp]="player.exp">
+</app-statbar>
+
+<ion-content class="ion-padding">
+
+    <div *ngIf="!showLoading">
+        <h1>Account Page</h1>
+        <ion-grid>
+            <ion-row>
+                <ion-col size="5">Username:</ion-col>
+                <ion-col>{{ player["user"] }}</ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col size="5">Cash:</ion-col>
+                <ion-col>£{{ player["cash"] }}</ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col size="5">WebCash:</ion-col>
+                <ion-col>£{{ player["web_cash"] }}</ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col size="5">XP:</ion-col>
+                <ion-col>{{ player["exp"] }}</ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col size="5">Level:</ion-col>
+                <ion-col>{{ player["level"] }}</ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col size="5">Jobs completed:</ion-col>
+                <ion-col>{{ player["jobs-completed"] }}</ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col size="5">Jobs failed:</ion-col>
+                <ion-col>{{ player["jobs-failed"] }}
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+
+        <ion-item text-center>
+            <ion-button (click)="onLogoutClick()">Logout</ion-button>
+        </ion-item>
+    </div>
+
+    <div *ngIf="showLoading" class="loading-spinner">
+        <ion-spinner name="crescent"></ion-spinner>
+    </div>
+</ion-content>

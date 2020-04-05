@@ -9,6 +9,7 @@ export class JobModalComponent implements OnInit {
     jobId;
     job;
     view;
+    canAdd;
     math = Math;
 
     constructor(private _navParams: NavParams, private _modalCtrl: ModalController) { }
@@ -23,7 +24,12 @@ export class JobModalComponent implements OnInit {
         this.job = this._navParams.get('job');
         this.jobId = parseInt(this._navParams.get('id'), 10);
         this.view = this._navParams.get('view');
-        console.log(this.job, this.jobId)
+        this.canAdd = this._navParams.get('can-add');
+        console.log(this.job, this.jobId);
+
+        // reverse-engineer for real date
+        let dateFromCreated = new Date(this.job.created);
+        this.job.sent = dateFromCreated.toLocaleTimeString() + ' - ' + dateFromCreated.toLocaleDateString();
     }
 
     // present modal for job item

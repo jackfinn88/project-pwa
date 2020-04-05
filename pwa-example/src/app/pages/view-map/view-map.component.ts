@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { Location } from '@angular/common';
 import { MapViewComponent } from 'src/app/components/map-view/map-view.component';
 
@@ -10,8 +10,13 @@ export class ViewMapComponent {
     @ViewChild(MapViewComponent, { static: false }) mapComponent: MapViewComponent;
     // flag to show loading spinner
     loaded = false;
+    player;
 
-    constructor(private _location: Location) { }
+    constructor(private _location: Location, private _cdr: ChangeDetectorRef) {
+        let saveData = JSON.parse(localStorage.getItem('saveData'));
+
+        this.player = saveData.currentUser;
+    }
 
     ngAfterViewInit() {
         this.checkMap();
@@ -30,6 +35,13 @@ export class ViewMapComponent {
     // check map component is ready
     checkMapIsLoaded(): boolean {
         return this.mapComponent && this.mapComponent.loaded;
+    }
+
+    updateStats(event) {
+        console.log('viewMap: updateStats', event);
+
+        this.player = event.player;
+        this._cdr.detectChanges();
     }
 
     goBack() {

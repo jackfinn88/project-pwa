@@ -1,10 +1,12 @@
-import { Component, OnInit, ViewChild, ElementRef, Input, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter } from '@angular/core';
 import * as L from 'leaflet';
 import 'leaflet-routing-machine';
 import { Router } from '@angular/router';
 import { ToastController, ModalController } from '@ionic/angular';
 import { GameModalComponent } from '../game-modal/game-modal.component';
-import { Subscription, fromEvent } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
+import { ApiService } from 'src/app/providers/api.service';
+import { Record } from 'src/app/util/record';
 
 @Component({
     selector: 'app-map-view',
@@ -12,29 +14,22 @@ import { Subscription, fromEvent } from 'rxjs';
     styleUrls: ['./map-view.component.scss']
 })
 export class MapViewComponent implements OnInit, OnDestroy {
-    @Input('interactive') isInteractive: boolean;
-
+    @Output() storageUpdate = new EventEmitter();
     @ViewChild('map', { read: ElementRef, static: false }) mapElementRef: ElementRef;
     accessToken = 'pk.eyJ1IjoiZmlubmphY2stZ2IiLCJhIjoiY2s3bmowbTJoMGUyajNsbTc5Y3ZhemtqNCJ9.qaNK4anI5YokbSKxUXpNWQ'; // openstreetmaps - tbd - remove
-
-    isFirstLoad: boolean = true;
-
+    loaded = false;
     mapElement: HTMLElement;
-    map: L.Map;
-    userLocation: L.LatLng;
-    routingControl: L.Routing.Control;
-    circles: L.Circle[] = [];
-    currentWaypoint: IWaypoint;
-    jobMarkers: L.Marker[] = [];
-    loaded: boolean = false;
-    playerData;
+    map;
+    userLocation;
+    routingControl;
+    circles;
+    currentWaypoint;
+    currentPopup;
+    jobMarkers = [];
+    saveData;
+    player;
     playerJobsCollection;
 
-    locations: any[] = [{ 'lat': 50.853703, 'lng': 0.572990 }, { 'lat': 50.8600, 'lng': 0.5830 }];
-    jobs: IJob[] = [
-        { 'id': '1', 'title': 'Job 1', 'description': 'Go here to XXXX', 'lat': 50.8515, 'lng': 0.5839, 'inRange': false },
-        { 'id': '2', 'title': 'Job 2', 'description': 'Go here to XXXX', 'lat': 50.8600, 'lng': 0.5830, 'inRange': false }
-    ];
     markerIcon = L.icon({
         iconUrl: 'assets/icons/custom/map-marker.png',
         shadowUrl: 'assets/icons/custom/map-marker-shadow.png',
@@ -44,48 +39,39 @@ export class MapViewComponent implements OnInit, OnDestroy {
         iconAnchor: [20, 56], // point of the icon which will correspond to marker's location
         shadowAnchor: [4, 34],  // the same for the shadow
     });
-    private backbuttonSubscription: Subscription;
-    constructor(public modalCtrl: ModalController, public toastController: ToastController, private _router: Router) { }
+    modalCommunicationSubject;
+
+    constructor(public modalCtrl: ModalController, public toastController: ToastController, private _router: Router, private _apiService: ApiService) {
+        // create subject for game modal to ensure communication on modal destroy
+        this.modalCommunicationSubject = new BehaviorSubject(null);
+    }
 
     ngOnInit() {
         this.getLocation();
-        console.log(this.isInteractive);
         this.getPlayerData();
-
-        //
-
-        const event = fromEvent(document, 'backbutton');
-        this.backbuttonSubscription = event.subscribe(async () => {
-            console.log('backbutton');
-            const modal = await this.modalCtrl.getTop();
-            if (modal) {
-                console.log('close modal');
-                modal.dismiss();
-            }
-        });
     }
 
     getPlayerData() {
         console.log('setupPlayerData')
-        // check job data in storage
-        let playerDataFromStorage = JSON.parse(localStorage.getItem('player'));
-
-        // create new object if none
-        this.playerData = playerDataFromStorage ? playerDataFromStorage : {
-            'active-jobs': this.playerJobsCollection
-        };
+        // get data from storage
+        this.saveData = JSON.parse(localStorage.getItem('saveData'));
+        this.player = this.saveData.currentUser;
 
         // extract data
-        this.playerJobsCollection = this.playerData['active-jobs'];
+        this.playerJobsCollection = this.player['active-jobs'];
     }
 
 
     // store current data regarding available jobs
-    savePlayerData() {
-        console.log('savePlayerData');
-        this.playerData['active-jobs'] = this.playerJobsCollection;
+    save() {
+        console.log('save');
+        // this.saveData.currentUser['active-jobs'] = this.playerJobsCollection;
+        this.player['active-jobs'] = this.playerJobsCollection;
+        this.saveData.currentUser = this.player;
 
-        localStorage.setItem('player', JSON.stringify(this.playerData));
+        localStorage.setItem('saveData', JSON.stringify(this.saveData));
+        this.storageUpdate.emit({ player: this.player });
+        this.updateRecord();
     }
 
     async presentToast(message, duration, colour) {
@@ -102,7 +88,8 @@ export class MapViewComponent implements OnInit, OnDestroy {
     getLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
-                this.userLocation = new L.LatLng(position.coords.latitude, position.coords.latitude);
+                this.userLocation = new L.LatLng(position.coords.latitude, position.coords.longitude);
+                console.log(this.userLocation)
                 // this.userLocation = { 'lat': position.coords.latitude, 'lng': position.coords.latitude, 'radius': position.coords.accuracy / 2 };
                 this.initializeMap();
             });
@@ -128,66 +115,42 @@ export class MapViewComponent implements OnInit, OnDestroy {
             subdomains: 'abcd',
             maxZoom: 15
         }).addTo(this.map);
-        // attribution
-        /*L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png32?access_token=' + this.accessToken, {
-            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-            maxZoom: 15,
-            id: 'mapbox.streets'
-        }).addTo(this.map);*/
 
-        if (this.isInteractive) {
-            console.log("interactive", this.isInteractive);
-            this.map.on('click', (event) => {
-                console.log("click", event);
-                var coord = (event as any).latlng;
-                var lat = coord.lat;
-                var lng = coord.lng;
-                console.log("You clicked the map at latitude: " + lat + " and longitude: " + lng);
-            });
+        this.map.on('click', (event) => {
+            console.log("click", event);
+            var coord = (event as any).latlng;
+            var lat = coord.lat;
+            var lng = coord.lng;
+            console.log("You clicked the map at latitude: " + lat + " and longitude: " + lng);
+        });
 
-            this.map.on('locationerror', (event) => {
-                this.onLocationError(event);
-            });
+        this.map.on('locationerror', (event) => {
+            this.onLocationError(event);
+        });
 
-            this.map.on('locationfound', (event) => {
-                this.onLocationFound(event);
-            });
-
-        }
+        this.map.on('locationfound', (event) => {
+            this.onLocationFound(event);
+        });
 
         setTimeout(() => {
             this.showDeviceLocation();
             this.mapElement = this.mapElementRef.nativeElement;
             this.loaded = true;
-            console.log('loaded', this.loaded)
         }, 1000);
 
     }
 
     markLocations(): void {
         console.log('markLocations');
+        this.jobMarkers.forEach((marker) => {
+            marker.remove();
+        })
         setTimeout(() => {
-            const randLatLng = this.getRandomLatLng();
-            const randJob: IJob = {
-                'id': '3',
-                'title': 'Job 3',
-                'description': 'Go here to XXXX',
-                'lat': randLatLng.lat,
-                'lng': randLatLng.lng,
-                'inRange': false
-            };
-            this.jobs.push(randJob);
-
             let marker: L.Marker;
-            this.jobMarkers = []; // tbd
-            /*this.jobs.forEach((job, idx) => {
-                console.log('planting marker for job ' + (idx + 1));
-                marker = L.marker([job.lat, job.lng], { icon: this.markerIcon }).on('click', (e) => { this.onMarkerClick(e, idx, job) }).addTo(this.map);
-                this.jobMarkers.push(marker);
-            });*/
+            this.jobMarkers = []; // tbd: clear markers after game completion
             this.playerJobsCollection.forEach((job, idx) => {
                 console.log('planting marker for job ' + (idx + 1));
-                marker = L.marker([job.lat, job.lng], { icon: this.markerIcon }).on('click', (e) => { this.onMarkerClick(e, idx, job) }).addTo(this.map);
+                marker = L.marker([job.lat, job.lng], { icon: this.markerIcon }).on('click', () => { this.onMarkerClick(job, idx) }).addTo(this.map);
                 this.jobMarkers.push(marker);
             });
         }, 500);
@@ -196,29 +159,25 @@ export class MapViewComponent implements OnInit, OnDestroy {
     showDeviceLocation(): void {
         console.log('showDeviceLocation');
         this.map.locate({ setView: true, watch: true });
+
+        this.markLocations();
     }
 
-    showWaypoint(jobId?: number): void {
+    showWaypoint(job: any): void {
         if (this.currentWaypoint) {
             this.currentWaypoint.popup.closePopup();
             this.removeRouteControl();
         };
 
-        let latLng: any;
-        if (jobId >= 0) {
-            latLng = [this.jobs[jobId].lat, this.jobs[jobId].lng];
-        } else {
-            const random = this.getRandomLatLng();
-            latLng = [random.lat, random.lng];
-        };
-        const popupContent = jobId >= 0 ? this.jobs[jobId].title + '<br>' + this.jobs[jobId].description : 'Random Job' + '<br>' + 'Go here to XXXX';
+        let latLng = { 'lat': job.lat, 'lng': job.lng };
+        const popupContent = job.title + '<br>' + job.description;
         const popup = L.popup()
             .setLatLng(latLng)
             .setContent(popupContent);
 
         this.currentWaypoint = {
             id: '1',
-            control: this.createRouteControl([this.userLocation.lat, this.userLocation.lng], latLng),
+            control: this.createRouteControl([this.userLocation.lat, this.userLocation.lng], [latLng.lat, latLng.lng]),
             popup: popup
         }
 
@@ -235,56 +194,107 @@ export class MapViewComponent implements OnInit, OnDestroy {
         });
     }
 
-    onMarkerClick(event: L.LeafletEvent, jobId: number, job: any): void {
-        const content = this.createPopupContent(jobId, job);
-        /*L.popup()
-            .setLatLng([this.jobs[jobId].lat, this.jobs[jobId].lng])
-            .setContent(content).openOn(this.map);*/
+    onMarkerClick(job: any, collectionIdx: number): void {
+        let content = this.createPopupContent(job, collectionIdx);
         L.popup()
             .setLatLng([job.lat, job.lng])
             .setContent(content).openOn(this.map);
     }
 
-    async presentModal(gameId: number, job: any) {
-        console.log('presentModal', gameId)
+    async presentModal(job: any, collectionIdx: number) {
+        console.log('presentModal', job)
         const modal = await this.modalCtrl.create({
             component: GameModalComponent,
             componentProps: {
-                'job': job
+                'job': job,
+                'collectionId': collectionIdx,
+                'subject': this.modalCommunicationSubject
             },
             cssClass: 'game-modal',
             animated: false,
         });
+
+        modal.onDidDismiss().then(() => {
+            console.log('modaldismiss', this.modalCommunicationSubject._value);
+            console.log('job', job);
+            console.log('player', this.player);
+            let data = this.modalCommunicationSubject._value;
+            if (data["game-started"] === true) {
+                let player = this.player;
+                let message, colour;
+                if (data["game-won"] === true) {
+                    // game win
+                    message = 'Job completed. Cash: +£' + job["cash"] + ' / XP: +' + job["experience"] + '.';
+                    colour = 'success';
+
+                    player["cash"] = parseInt(player["cash"], 10) + job["cash"];
+                    player["exp"] = parseInt(player["exp"], 10) + job["experience"];
+                    player["jobs-completed"] = parseInt(player["jobs-completed"], 10) + 1;
+                    // tbd: player progession (if p.exp + j.exp > threshold = p.level++) etc
+                } else {
+                    // game lose
+                    message = 'Job failed. Better luck next time.';
+                    colour = 'danger';
+                    player["jobs-failed"] = parseInt(player["jobs-failed"], 10) + 1;
+                }
+                this.player = player;
+
+                this.removeJobFromCollection(collectionIdx);
+                this.markLocations();
+                this.presentToast(message, 2000, colour);
+            }
+        });
+
         return await modal.present();
     }
 
-    onPlayBtnClick(event: MouseEvent, jobId: number, job: any) {
-        // id is added to srcElement from ngFor, cast type to collect
-        const id = (event as any).srcElement.id;
-        this.presentModal(jobId, job);
+    removeJobFromCollection(id) {
+        console.log('removeJobFromCollection');
+        this.playerJobsCollection.splice(id, 1);
+
+        // tbd: remove markers
+
+        this.save();
     }
 
-    createPopupContent(jobId: number, job: any): HTMLDivElement {
+    createPopupContent(job: any, collectionIdx: number): HTMLDivElement {
         const container = document.createElement('div'),
+            titleText = document.createElement('p'),
+            senderText = document.createElement('p'),
+            rewardText = document.createElement('p'),
+            gameText = document.createElement('p'),
+            btnContainer = document.createElement('ion-buttons'),
             waypointBtn = document.createElement('ion-button'),
             playGameBtn = document.createElement('ion-button');
-        waypointBtn.setAttribute('size', 'small');
+
+        titleText.textContent = 'Title: ' + job.name;
+        senderText.textContent = 'Sent by: ' + job.sender;
+        rewardText.textContent = 'Rewards: £' + job.cash + '  /  XP: ' + job.experience;
+        gameText.textContent = 'Plug-in: ' + (job.game < 2 ? 'starfall.exe' : 'knightfall.exe');
+
+        container.appendChild(titleText);
+        container.appendChild(senderText);
+        container.appendChild(rewardText);
+        container.appendChild(gameText);
+
         waypointBtn.textContent = 'Waypoint';
         waypointBtn.onclick = () => {
-            this.showWaypoint(jobId);
+            this.showWaypoint(job);
         }
 
-        playGameBtn.setAttribute('size', 'small');
         playGameBtn.textContent = 'Play';
         // playGameBtn.disabled = !this.jobs[jobId].inRange;
-        playGameBtn.onclick = (e) => {
-            this.onPlayBtnClick(e, jobId, job);
+        playGameBtn.onclick = () => {
+            this.presentModal(job, collectionIdx);
+            this.map.closePopup();
         }
 
+        btnContainer.appendChild(waypointBtn);
+        btnContainer.appendChild(playGameBtn);
+
         container.classList.add('popup-container');
-        container.innerHTML = this.jobs[jobId].title + '<br>' + this.jobs[jobId].description + '<br>';
-        container.appendChild(waypointBtn);
-        container.appendChild(playGameBtn);
+
+        container.appendChild(btnContainer);
 
         return container;
     }
@@ -298,10 +308,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
     onLocationFound(event: L.LocationEvent): void {
         console.log(event.type);
-        if (this.isFirstLoad) {
-            this.markLocations();
-            this.isFirstLoad = false;
-        }
         // capture location
         this.userLocation = new L.LatLng(event.latlng.lat, event.latlng.lng);
 
@@ -315,7 +321,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
     checkRangeFromLocations(): void {
         console.log('checkRangeFromLocations');
         let jobLatLng: L.LatLng;
-        this.jobs.forEach((job, idx) => {
+        this.playerJobsCollection.forEach((job, idx) => {
             jobLatLng = new L.LatLng(job.lat, job.lng);
             const distanceMeters = Math.round(this.userLocation.distanceTo(jobLatLng) * 1e2) / 1e2;
             console.log('distance to job ' + (idx + 1) + ': ' + distanceMeters + 'm');
@@ -375,31 +381,42 @@ export class MapViewComponent implements OnInit, OnDestroy {
         this.circles = [];
     }
 
-    getRandomLatLng(): L.LatLng {
-        console.log('getRandomLatLng');
-        const bounds = this.map.getBounds(),
-            southWest = bounds.getSouthWest(),
-            northEast = bounds.getNorthEast(),
-            lngSpan = northEast.lng - southWest.lng,
-            latSpan = northEast.lat - southWest.lat;
-
-        return new L.LatLng(
-            southWest.lat + latSpan * Math.random(),
-            southWest.lng + lngSpan * Math.random());
-    }
-
     destroy(): Promise<void> {
         console.log('destroy');
         return new Promise((resolve) => {
             this.map.remove();
+            // clear property once removed - to stem outside destroy calls from parent components
+            this.map = null;
             resolve();
         })
     }
 
-    ngOnDestroy() {
-
+    async ngOnDestroy() {
         console.log('ngOnDestroy');
-        this.backbuttonSubscription.unsubscribe();
+        // calls to destroy map may be triggered before ngDestroy - check map first
+        if (this.map) await this.destroy();
+    }
+
+    updateRecord() {
+        let record = {
+            id: this.saveData.currentUser["id"],
+            user: this.saveData.currentUser["user"],
+            pass: this.saveData.currentUser["pass"],
+            cash: this.saveData.currentUser["cash"],
+            web_cash: this.saveData.currentUser["web_cash"],
+            exp: parseInt(this.saveData.currentUser["exp"], 10),
+            level: parseInt(this.saveData.currentUser["level"], 10),
+            completed: parseInt(this.saveData.currentUser["jobs-completed"], 10),
+            failed: parseInt(this.saveData.currentUser["jobs-failed"], 10),
+        }
+
+        this._apiService.updateRecord(record).subscribe((record: Record) => {
+            // update device accounts
+            let accountIdx = this.saveData.accounts.findIndex(account => account.id === this.saveData.currentUser.id);
+            this.saveData.accounts.splice(accountIdx, 1, this.saveData.currentUser);
+
+            localStorage.setItem('saveData', JSON.stringify(this.saveData));
+        });
     }
 }
 

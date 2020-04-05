@@ -1,23 +1,115 @@
 ion-content {
-    --overflow: hidden;
+    --padding-top: 10% !important;
 }
 
-.inner-content {
-    display: flex;
-    flex-flow: column;
+ion-list {
+    background: rgb(50, 50, 50) !important;
+}
+
+ion-item {
+    --background: darkgray;
+    --padding-start: 0px !important;
+    --padding-end: 0px !important;
+    --inner-padding-start: 0px !important;
+    --inner-padding-end: 0px !important;
+}
+
+ion-segment {
+    --color-checked: #f90;
+    --color: white;
+    --indicator-color: gray;
+}
+
+ion-segment-button {
+    background: #1b1b1b;
+}
+
+.job-content {
+    margin: 0px 8px;
+}
+
+.job-content h1,h6 {
+    margin-left: 8px;
+}
+
+.segments {
+    height: 376px;
+}
+
+.segment-button-checked {
+    background: rgb(50, 50, 50);
+}
+
+.jobs-list,
+.available-list,
+.player-list {
     height: 100%;
 }
 
-.map-view-container {
-    flex-grow: 1;
+.jobs-list ion-item {
+    cursor: pointer;
+    border: 1px solid grey;
+    --min-height: 70px;
 }
 
-.hide {
+.jobs-list ion-item > * {
+    pointer-events: none;
+}
+
+.jobs-list ion-item:active {
+    --background: grey;
+}
+
+.job-sender-thumb {
+    margin-left: 8px;
+    height: 46px;
+    width: 46px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+}
+
+.job-info {
+    position: relative;
+    width: 60%;
+    margin-left: 10px;
+}
+
+.job-info div {
+    display: inline;
+}
+
+.info-remaining {
     position: absolute;
-    top:0;
-    left:0;
-    bottom:0;
-    right:0;
-    transform: translateY(-120%);
-    -webkit-transform: translateY(-120%);
+    right: 16px;
+    margin-left:  auto;
+    margin-right: 0;
+    font-size: .6em;
+}
+
+.info-time {
+    position: absolute;
+    right: 0px;
+    margin-left:  auto;
+    margin-right: 0;
+    font-size: .65em;
+}
+
+.info-description {
+    display: block !important;
+    font-size: .7em;
+    overflow:hidden; 
+    white-space:nowrap; 
+    text-overflow: ellipsis;
+}
+
+.job-badge {
+    text-align: center;
+    margin: auto;
+}
+
+.job-badge ion-badge {
+    --ion-color-base: #f90 !important;
 }

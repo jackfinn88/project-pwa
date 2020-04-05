@@ -1,32 +1,50 @@
 <ion-header>
     <ion-toolbar>
-        <ion-buttons slot="start">
-            <ion-button (click)="closeModal()">
-                <ion-icon name="arrow-back"></ion-icon>
-            </ion-button>
-        </ion-buttons>
-        <ion-title>Job</ion-title>
+        <ion-title>{{ job.sender }}</ion-title>
         <ion-buttons slot="end">
-            <ion-button>
-                <ion-icon name="options"></ion-icon>
+            <ion-button (click)="closeModal()">
+                <ion-icon name="close-outline"></ion-icon>
             </ion-button>
         </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-    <h1>Title: {{ job.name }}</h1>
-    <p>Description: {{ job.description }}</p>
-    <p>Difficulty: {{ job.difficulty }}</p>
-    <p>Game: {{ job.game }}</p>
-    <p>Exp: {{ job.experience }}</p>
-    <p>Cash: {{ job.cash }}</p>
-    <p>Created: {{ job.created }}</p>
-    <p>Duration: {{ job.duration }}</p>
-    <p>Remaining: {{ math.floor(job.remaining / 1000) > 0 ? math.floor(job.remaining / 1000) : 0}}</p>
-    <p>Lat: {{ job.lat }}</p>
-    <p>Lng: {{ job.lng }}</p>
+<ion-content>
+    <ion-grid>
+        <ion-row>
+            <ion-col size="3">Subject:</ion-col>
+            <ion-col>{{ job.name }}</ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="3">Sent:</ion-col>
+            <ion-col>{{ job.sent }}</ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="3">Cash:</ion-col>
+            <ion-col>£{{ job.cash }}</ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="3">Exp:</ion-col>
+            <ion-col>{{ job.experience }}</ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="3">Difficulty:</ion-col>
+            <ion-col>{{ job.difficulty }}</ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="3">Plug-in:</ion-col>
+            <ion-col>{{ job.game }}</ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col size="3">Message:</ion-col>
+            <ion-col>{{ job.description }}TESSFDdlsakjd dsajkhfaskfnsd dsakjfhsks sdkfhaskdfasf kuhdfsbasfkadhf
+            </ion-col>
+        </ion-row>
+    </ion-grid>
 
-    <ion-button *ngIf="this.view === 'available'" (click)="onAddButtonClick()">Accept Job</ion-button>
-    <ion-button *ngIf="this.view === 'player'" (click)="onRemoveButtonClick()">Remove Job</ion-button>
+    <div class="buttons-container">
+        <ion-button *ngIf="this.view === 'available'" (click)="onAddButtonClick()" [disabled]="!canAdd">Accept Job
+        </ion-button>
+        <ion-button *ngIf="this.view === 'player'" (click)="onRemoveButtonClick()">Remove Job</ion-button>
+    </div>
 </ion-content>

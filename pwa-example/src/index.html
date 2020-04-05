@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="manifest" href="manifest.webmanifest">
-    <meta name="theme-color" content="#1976d2">
+    <meta name="theme-color" content="#1b1b1b">
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
         integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
@@ -18,9 +18,13 @@
         var global = global || window;
         var Buffer = Buffer || [];
         var process = process || {
-            env: { DEBUG: undefined },
+            env: {
+                DEBUG: undefined,
+                // rejectUnauthorized: false
+            },
             version: []
         };
+        // process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
     </script>
 </head>
 

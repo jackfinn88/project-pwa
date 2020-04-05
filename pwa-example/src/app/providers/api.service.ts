@@ -11,8 +11,12 @@ export class ApiService {
 
     constructor(private _httpClient: HttpClient) { }
 
-    readRecords(): Observable<Record[]> {
-        return this._httpClient.get<Record[]>(`${this.PHP_API_SERVER}/api/read.php`);
+    verifyUser(record: Record): Observable<Record> {
+        return this._httpClient.post<Record>(`${this.PHP_API_SERVER}/api/read.php`, record);
+    }
+
+    readRecords(record?: Record): Observable<Record[]> {
+        return this._httpClient.post<Record[]>(`${this.PHP_API_SERVER}/api/read.php`, record);
     }
 
     createRecord(record: Record): Observable<Record> {

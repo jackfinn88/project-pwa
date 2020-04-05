@@ -5,7 +5,7 @@
                 <ion-icon name="arrow-back"></ion-icon>
             </ion-button>
         </ion-buttons>
-        <ion-title>Game</ion-title>
+        <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
         <ion-buttons slot="end">
             <ion-button>
                 <ion-icon name="options"></ion-icon>
@@ -15,15 +15,96 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-    <div class="game-wrapper" [ngSwitch]="gameType">
+    <!--START-->
+    <div *ngIf="!showGame && !showScore" class="start-wrapper">
+        <div *ngIf="!showAnim" class="job-info">
+            <div>
+                <h1>Play Job</h1>
+                <ion-grid>
+                    <ion-row>
+                        <ion-col size="3">Subject:</ion-col>
+                        <ion-col>{{ job.name }}</ion-col>
+                    </ion-row>
+                    <ion-row>
+                        <ion-col size="3">Sender:</ion-col>
+                        <ion-col>{{ job.sender }}</ion-col>
+                    </ion-row>
+                    <ion-row>
+                        <ion-col size="3">Sent:</ion-col>
+                        <ion-col>{{ job.sent }}</ion-col>
+                    </ion-row>
+                    <ion-row>
+                        <ion-col size="3">Cash:</ion-col>
+                        <ion-col>£{{ job.cash }}</ion-col>
+                    </ion-row>
+                    <ion-row>
+                        <ion-col size="3">Exp:</ion-col>
+                        <ion-col>{{ job.experience }}</ion-col>
+                    </ion-row>
+                    <ion-row>
+                        <ion-col size="3">Plug-in:</ion-col>
+                        <ion-col>{{ gameType }}.exe</ion-col>
+                    </ion-row>
+                    <ion-row>
+                        <ion-col size="3">Message:</ion-col>
+                        <ion-col>{{ job.description }}</ion-col>
+                    </ion-row>
+                </ion-grid>
+            </div>
+
+            <div>
+                <h3>Instructions</h3>
+                <div [ngSwitch]="gameType" class="job-instructions">
+                    <div *ngSwitchCase="'knightfall'">Extract the files and get out of the system. Move by destroying
+                        protection
+                        layers of the same colour and rotating the view to manouver yourself. Land from above to capture
+                        the files.</div>
+                    <div *ngSwitchCase="'starfall'">Corrupt files by hitting and destroying the data packets
+                        before they reach the server.
+                        Corrupt enough of the transfer before they upload what they need.</div>
+                </div>
+                <ion-button (click)="onPlayButtonClick()">START</ion-button>
+            </div>
+        </div>
+        <div *ngIf="showAnim">
+            <div class="load">user.phub@dev:~$ </div>
+        </div>
+    </div>
+
+    <!--GAME-->
+    <div *ngIf="showGame" class="game-wrapper crt" [ngSwitch]="gameType">
+        <div *ngIf="showFadeEnd" class="fade fade-end">
+        </div>
+        <div *ngIf="showFade" class="fade">
+            <p [attr.data-text]="gameEndText">{{ gameEndText }}</p>
+        </div>
+
         <div *ngSwitchCase="'knightfall'" class="game-container knightfall-container">
+            <div class="ui-overlay knightfall-overlay">
+                <ion-button (click)="onTestButtonClick()">TEST</ion-button>
+                <p>Time: {{ timerText }}</p>
+                <ion-progress-bar [value]="timerProgress"></ion-progress-bar>
+            </div>
             <iframe class="iframe-game"
                 src="https://jlf40.brighton.domains/dump/angular/test/api/knightfall2/index.html"
                 frameborder="0"></iframe>
         </div>
 
         <div *ngSwitchCase="'starfall'" class="game-container starfall-container">
+            <div class="ui-overlay starfall-overlay">
+                <ion-button (click)="onTestButtonClick()">TEST</ion-button>
+                <p>Corrupted: {{ ((uiData.caught * 64) / 1000).toFixed(2) }} / {{ uiData.corrupt.toFixed(2) }}Mb</p>
+                <ion-progress-bar [value]="uiData.caughtProgress"></ion-progress-bar>
+                <p>Complete: {{ ((uiData.lost * 64) / 1000).toFixed(2) }} / {{ uiData.complete.toFixed(2) }}Mb</p>
+                <ion-progress-bar [value]="uiData.lostProgress"></ion-progress-bar>
+            </div>
             <div id="game"></div>
         </div>
+    </div>
+
+    <!--SCORE-->
+    <div *ngIf="showScore" class="score-wrapper">
+        <h1>{{ feedback.header }}</h1>
+        <ion-button (click)="onDoneButtonClick()">DONE</ion-button>
     </div>
 </ion-content>

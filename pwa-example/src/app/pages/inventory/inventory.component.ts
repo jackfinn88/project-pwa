@@ -5,10 +5,10 @@ import { Record } from 'src/app/util/record';
 import { AlertController } from '@ionic/angular';
 
 @Component({
-    templateUrl: 'transfer.component.html',
-    styleUrls: ['./transfer.component.scss'],
+    templateUrl: 'inventory.component.html',
+    styleUrls: ['./inventory.component.scss'],
 })
-export class TransferComponent implements OnInit {
+export class InventoryComponent implements OnInit {
     baseUrl = 'https://jlf40.brighton.domains/dump/angular/test/api';
     users: Record[];
 
@@ -21,23 +21,6 @@ export class TransferComponent implements OnInit {
 
     ngOnInit() {
         this.saveData = JSON.parse(localStorage.getItem('saveData'));
-
-        this.updateAmounts();
-    }
-
-    updateAmounts() {
-        console.log('updateAmounts')
-        this.availableAmounts = [];
-        let userCash = this.saveData.currentUser.cash;
-        this.amountIncrements.forEach((increment) => {
-            if (userCash >= increment) {
-                this.availableAmounts.push(increment);
-            }
-        });
-
-        if (userCash > this.availableAmounts[this.availableAmounts.length - 1]) this.availableAmounts.push(userCash);
-
-        this._cdr.detectChanges();
     }
 
     onTransferItemClick(event) {
@@ -77,8 +60,6 @@ export class TransferComponent implements OnInit {
             this.saveData.accounts.splice(accountIdx, 1, this.saveData.currentUser);
 
             localStorage.setItem('saveData', JSON.stringify(this.saveData));
-
-            this.updateAmounts();
         });
     }
 
@@ -88,7 +69,7 @@ export class TransferComponent implements OnInit {
 
     async presentAlertConfirm(amount) {
         const alert = await this.alertCtrl.create({
-            header: 'Transfer',
+            header: 'Confirm Transfer',
             message: 'Are you sure you want to transfer £<strong>' + amount + '</strong>?',
             cssClass: 'alert-confirm',
             buttons: [

@@ -1,40 +1,172 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { ToastController, ModalController } from '@ionic/angular';
+import { GameModalComponent } from 'src/app/components/game-modal/game-modal.component';
 
 @Component({
     templateUrl: 'home.component.html',
     styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
-    logbut: any;
+    @ViewChild('toggleView', { static: false }) toggleButton: ElementRef;
+
+    saveData;
     logged: boolean = false;
-    constructor() { }
+    showHome = false;
+    showForms = false;
+    formView = 'login';
+    toggleFormText = { label: 'Don\'t have an account?', button: 'Sign up' };
+    showLoading = false;
+
+    constructor(public modalCtrl: ModalController, public toastController: ToastController) { }
 
     ngOnInit() {
-        // tbd: check login
-        let loggedIn = JSON.parse(localStorage.getItem('logged'));
-        this.logbut = document.querySelector('#logbutton');
+        console.log('ngOnInit');
+        this.saveData = JSON.parse(localStorage.getItem('saveData'));
 
-        if (loggedIn) {
-            this.logged = true;
-            this.logbut.textContent = 'Logout';
+        if (this.saveData) {
+            if (this.saveData.currentUser) {
+                // show home
+                this.showForms = false;
+                this.showHome = true;
+            } else {
+                // show login
+                this.showHome = false;
+                this.showForms = true;
+            }
         } else {
-            this.logged = false;
-            this.logbut.textContent = 'Login';
+            // no save data on device
+            let newData = {
+                currentUser: null,
+                accounts: [],
+            }
+            this.saveData = newData;
+
+            localStorage.setItem('saveData', JSON.stringify(newData));
+
+            this.showHome = false;
+            this.showForms = true;
         }
 
     }
 
-    toggleLogin() {
-        if (this.logged) {
-            console.log('logout');
-            this.logged = false;
-            this.logbut.textContent = 'Login';
-            localStorage.removeItem('logged');
+    async presentToast(message, duration, colour) {
+        const toast = await this.toastController.create({
+            message: message,
+            duration: duration,
+            color: colour,
+            cssClass: 'toast-message'
+        });
+        toast.present();
+    }
+
+    async presentModal(job: any) {
+        console.log('presentModal', job)
+        const modal = await this.modalCtrl.create({
+            component: GameModalComponent,
+            componentProps: {
+                'job': job
+            },
+            cssClass: 'game-modal',
+            animated: false,
+        });
+
+        modal.onDidDismiss().then((data) => {
+            if (data.data) {
+                let response = data.data as any;
+                console.log(response);
+            }
+        });
+
+        return await modal.present();
+    }
+
+    toggleForm() {
+        console.log(this.toggleButton);
+        this.showLoading = true;
+        setTimeout(() => {
+            if (this.formView === 'login') {
+                this.formView = 'register';
+                this.toggleFormText = { label: 'Already have an account?', button: 'Sign in' };
+            } else if (this.formView === 'register') {
+                this.formView = 'login';
+                this.toggleFormText = { label: 'Don\'t have an account?', button: 'Sign up' };
+            }
+            this.showLoading = false;
+        }, 500);
+    }
+
+    onLogin(user) {
+        console.log('HomeComponent', user);
+
+        if (user) {
+            this.showForms = false;
+            this.showLoading = true;
+            let idx = this.saveData.accounts.findIndex(account => account.id === user.id);
+            if (idx > -1) {
+                // account already exists, use
+                this.saveData.currentUser = this.saveData.accounts[idx];
+            } else {
+                // user exists but no account on device
+                let userAccount = {
+                    'id': user.id,
+                    'user': user.user,
+                    'pass': user.pass,
+                    'cash': user.cash,
+                    'web_cash': user.web_cash,
+                    'exp': user.exp,
+                    'level': user.level,
+                    'jobs-completed': 0,
+                    'jobs-failed': 0,
+                    'active-jobs': [],
+                    'job-data': {
+                        'next-job-renewal': 0,
+                        'jobs': []
+                    }
+                }
+                console.log(userAccount)
+                this.saveData.currentUser = userAccount;
+                this.saveData.accounts.push(userAccount);
+            }
+
+            localStorage.setItem('saveData', JSON.stringify(this.saveData));
+
+            setTimeout(() => {
+                this.showLoading = false;
+                this.showHome = true;
+            }, 500);
         } else {
-            console.log('login');
-            this.logged = true;
-            this.logbut.textContent = 'Logout';
-            localStorage.setItem('logged', JSON.stringify({ logged: true }));
+            // user not verified
+            this.presentToast('Account not verified, try again', 2000, 'danger');
         }
+    }
+
+    onRegistration(event) {
+        console.log('HomeComponent', event);
+        this.showForms = false;
+        this.showLoading = true;
+
+        let userAccount = {
+            'id': event.id,
+            'user': event.user,
+            'pass': event.pass,
+            'cash': 0,
+            'web_cash': 0,
+            'exp': 0,
+            'level': 1,
+            'active-jobs': [],
+            'job-data': {
+                'next-job-renewal': 0,
+                'jobs': []
+            }
+        }
+        this.saveData.currentUser = userAccount;
+        this.saveData.accounts.push(userAccount);
+        // tbd: log user in - localstorage
+        localStorage.setItem('saveData', JSON.stringify(this.saveData));
+
+        setTimeout(() => {
+            this.showLoading = false;
+            this.showHome = true;
+        }, 500);
     }
 }

@@ -5,14 +5,17 @@
                 <ion-icon name="arrow-back"></ion-icon>
             </ion-button>
         </ion-buttons>
-        <ion-title>PortHub</ion-title>
+        <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
         <ion-buttons slot="end">
             <ion-button>
-                <ion-icon name="options"></ion-icon>
+                <ion-icon></ion-icon>
             </ion-button>
         </ion-buttons>
     </ion-toolbar>
 </ion-header>
+
+<app-statbar [user]="player.user" [cash]="player.cash" [webcash]="player.web_cash" [exp]="player.exp">
+</app-statbar>
 
 <ion-content>
     <div *ngIf="!loaded" class="loading-spinner">
@@ -21,8 +24,9 @@
     </div>
 
     <div class="inner-content">
+
         <div class="map-view-container">
-            <app-map-view interactive="true">
+            <app-map-view (storageUpdate)="updateStats($event)">
             </app-map-view>
         </div>
     </div>

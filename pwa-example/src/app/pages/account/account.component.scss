@@ -1,0 +1,27 @@
+ion-content {
+    --padding-top: 10% !important;
+}
+
+ion-grid {
+    color: #fff;
+    --background: rgb(50, 50, 50);
+    width: 95%;
+    font-size: .8em;
+}
+
+ion-col {
+    margin: 0px 4px;
+}
+
+ion-row:not(:last-child) {
+    border-bottom: 1px dashed gray;
+}
+
+ion-item {
+    margin: 40px 0px;
+}
+
+ion-button {
+    height: 80%;
+    width: 100%;
+}

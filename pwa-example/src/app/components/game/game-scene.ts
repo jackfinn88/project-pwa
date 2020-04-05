@@ -1,87 +1,154 @@
 import "phaser";
 export class GameScene extends Phaser.Scene {
     delta: number;
-    lastStarTime: number;
-    starsCaught: number;
-    starsFallen: number;
-    sand: Phaser.Physics.Arcade.StaticGroup;
-    info: Phaser.GameObjects.Text;
+    lastFileTime: number;
+    filesCaught: number;
+    filesFallen: number;
+    ground: Phaser.Physics.Arcade.StaticGroup;
+
+    filesNeeded: number;
+    maxFilesFallen: number;
+    firstUpdate = true;
+    gameOver = false;
+    files = [];
+
     constructor() {
         super({
             key: "GameScene"
         });
     }
-    init(/*params: any*/): void {
+
+    init(): void {
+        let options = (this.game as any).options;
         this.delta = 1000;
-        this.lastStarTime = 0;
-        this.starsCaught = 0;
-        this.starsFallen = 0;
+        this.lastFileTime = 0;
+        this.filesCaught = 0;
+        this.filesFallen = 0;
+        this.filesNeeded = options.catch;
+        this.maxFilesFallen = options.lose;
     }
+
     preload(): void {
-        this.load.setBaseURL(
-            "https://raw.githubusercontent.com/mariyadavydova/" +
-            "starfall-phaser3-typescript/master/");
-        this.load.image("star", "assets/star.png");
-        this.load.image("sand", "assets/sand.jpg");
+        this.load.image("file", "assets/game/file_icon.png");
+        this.load.image("ground", "assets/game/ground.png");
     }
 
     create(): void {
-        this.sand = this.physics.add.staticGroup({
-            key: 'sand',
+        this.ground = this.physics.add.staticGroup({
+            key: 'ground',
             frameQuantity: 20
         });
-        Phaser.Actions.PlaceOnLine(this.sand.getChildren(),
+        Phaser.Actions.PlaceOnLine(this.ground.getChildren(),
             new Phaser.Geom.Line(20, 580, 820, 580));
-        this.sand.refresh();
-        this.info = this.add.text(10, 10, '',
-            { font: '24px Arial Bold', fill: '#FBFBAC' });
+        this.ground.refresh();
     }
+
     update(time: number): void {
-        var diff: number = time - this.lastStarTime;
+        if (this.firstUpdate) this.game.events.emit('first-update'); this.firstUpdate = false;
+
+        if (this.gameOver) return;
+
+        var diff: number = time - this.lastFileTime;
         if (diff > this.delta) {
-            this.lastStarTime = time;
+            this.lastFileTime = time;
             if (this.delta > 500) {
                 this.delta -= 20;
             }
-            this.emitStar();
-        }
-        this.info.text =
-            this.starsCaught + " caught - " +
-            this.starsFallen + " fallen (max 3)";
-    }
-    private onClick(star: Phaser.Physics.Arcade.Image): () => void {
-        return function () {
-            star.setTint(0x00ff00);
-            star.setVelocity(0, 0);
-            this.starsCaught += 1;
-            this.time.delayedCall(100, function (star) {
-                star.destroy();
-            }, [star], this);
+            this.emitFile();
         }
     }
-    private onFall(star: Phaser.Physics.Arcade.Image): () => void {
-        return function () {
-            star.setTint(0xff0000);
-            this.starsFallen += 1;
-            this.time.delayedCall(100, function (star) {
-                star.destroy();
-                if (this.starsFallen > 2) {
-                    this.scene.start("ScoreScene",
-                        { starsCaught: this.starsCaught });
+
+    private onClick(file: Phaser.Physics.Arcade.Image) {
+        file.setTint(0x00ff00);
+        file.setVelocity(0, 0);
+        this.filesCaught += 1;
+
+        this.game.events.emit('game-event', {
+            end: this.gameOver,
+            stats: {
+                'win': false,
+                'caught': this.filesCaught,
+                'lost': this.filesFallen
+            }
+        });
+
+        this.time.delayedCall(100, (file) => {
+            if (!this.gameOver) {
+                file.destroy();
+                if (this.filesCaught >= this.filesNeeded) {
+                    this.gameWin();
                 }
-            }, [star], this);
-        }
+            }
+        }, [file], this);
+
     }
-    private emitStar(): void {
-        var star: Phaser.Physics.Arcade.Image;
+
+    private onFall(file: Phaser.Physics.Arcade.Image) {
+        file.setTint(0xff0000);
+        this.filesFallen += 1;
+
+        this.game.events.emit('game-event', {
+            end: this.gameOver,
+            stats: {
+                'win': false,
+                'caught': this.filesCaught,
+                'lost': this.filesFallen
+            }
+        });
+
+        this.time.delayedCall(100, (file) => {
+            if (!this.gameOver) {
+                file.destroy();
+                if (this.filesFallen >= this.maxFilesFallen) {
+                    this.gameLose();
+                }
+            }
+        }, [file], this);
+
+    }
+
+    private emitFile(): void {
+        var file: Phaser.Physics.Arcade.Image;
         var x = Phaser.Math.Between(25, 775);
         var y = 26;
-        star = this.physics.add.image(x, y, "star");
-        star.setDisplaySize(50, 50);
-        star.setVelocity(0, 200);
-        star.setInteractive();
-        star.on('pointerdown', this.onClick(star), this);
-        this.physics.add.collider(star, this.sand,
-            this.onFall(star), null, this);
+        file = this.physics.add.image(x, y, "file");
+        file.setDisplaySize(50, 50);
+        file.setVelocity(0, 200);
+        file.setInteractive();
+        file.on('pointerdown', () => { this.onClick(file) });
+        this.physics.add.collider(file, this.ground,
+            () => { this.onFall(file) }, null, this);
+    }
+
+    private gameLose() {
+        console.log('gameLose');
+        this.time.systems.shutdown();
+        if (!this.gameOver) {
+            this.gameOver = true;
+            this.game.events.emit('game-event', {
+                end: this.gameOver,
+                stats: {
+                    'win': false,
+                    'caught': this.filesCaught,
+                    'lost': this.filesFallen
+                }
+            });
+        }
+    }
+
+    private gameWin() {
+        console.log('gameWin');
+        this.time.systems.shutdown();
+        if (!this.gameOver) {
+            this.gameOver = true;
+            this.game.events.emit('game-event', {
+                end: this.gameOver,
+                stats: {
+                    'win': true,
+                    'caught': this.filesCaught,
+                    'lost': this.filesFallen
+                }
+            });
+        }
     }
 };

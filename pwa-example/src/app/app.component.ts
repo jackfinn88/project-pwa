@@ -1,5 +1,4 @@
 import { Component, HostListener } from '@angular/core';
-import { Router, NavigationStart } from '@angular/router';
 import { AutocloseOverlaysService } from './providers/autoclose-service';
 
 @Component({

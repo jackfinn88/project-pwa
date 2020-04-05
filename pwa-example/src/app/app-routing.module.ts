@@ -3,15 +3,21 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { HomeComponent } from './pages/home/home.component';
 import { ViewMapComponent } from './pages/view-map/view-map.component';
-import { TransferComponent } from './pages/transfer/transfer.component';
+import { DBComponent } from './pages/db/db.component';
 import { JobsComponent } from './pages/jobs/jobs.component';
+import { TransferComponent } from './pages/transfer/transfer.component';
+import { InventoryComponent } from './pages/inventory/inventory.component';
+import { AccountComponent } from './pages/account/account.component';
 
 const routes: Routes = [
     { path: '', component: HomeComponent },
     { path: 'home', component: HomeComponent },
+    { path: 'jobs', component: JobsComponent },
     { path: 'map', component: ViewMapComponent },
     { path: 'transfer', component: TransferComponent },
-    { path: 'jobs', component: JobsComponent },
+    { path: 'account', component: AccountComponent },
+    { path: 'inventory', component: InventoryComponent },
+    { path: 'db', component: DBComponent },
 
     // otherwise redirect to home
     { path: '**', redirectTo: '' }];

@@ -1,6 +1,36 @@
-.modal-wrapper {
-    width: 50%;
-    margin: auto;
-    height: 50%;
-    border: 1px solid black;
+ion-content {
+    --background: rgb(50, 50, 50);
+    --color: #fff;
+}
+
+ion-header ion-title {
+    text-align: center;
+}
+
+ion-grid {
+    width: 95%;
+    font-size: .8em;
+}
+
+ion-col {
+    margin: 0px 4px;
+}
+
+ion-row:not(:last-child) {
+    border-bottom: 1px dashed gray;
+}
+
+h1 {
+    margin: 0px;
+}
+
+p {
+    margin: 4px 0px;
+}
+
+.buttons-container {
+    width: 100%;
+    bottom: 12px;
+    position: absolute;
+    text-align: center;
 }
