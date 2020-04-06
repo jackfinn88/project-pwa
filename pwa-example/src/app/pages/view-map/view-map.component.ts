@@ -1,4 +1,4 @@
-import { Component, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Location } from '@angular/common';
 import { MapViewComponent } from 'src/app/components/map-view/map-view.component';
 
@@ -6,11 +6,12 @@ import { MapViewComponent } from 'src/app/components/map-view/map-view.component
     templateUrl: 'view-map.component.html',
     styleUrls: ['./view-map.component.scss']
 })
-export class ViewMapComponent {
+export class ViewMapComponent implements OnDestroy {
     @ViewChild(MapViewComponent, { static: false }) mapComponent: MapViewComponent;
     // flag to show loading spinner
     loaded = false;
     player;
+    animFrame;
 
     constructor(private _location: Location, private _cdr: ChangeDetectorRef) {
         let saveData = JSON.parse(localStorage.getItem('saveData'));
@@ -23,13 +24,15 @@ export class ViewMapComponent {
     }
 
     checkMap() {
-        requestAnimationFrame(() => {
+        this.animFrame = requestAnimationFrame(() => {
             if (this.checkMapIsLoaded()) {
-                this.loaded = true;
+                requestAnimationFrame(() => {
+                    this.loaded = true;
+                });
             } else {
                 this.checkMap();
             }
-        })
+        });
     }
 
     // check map component is ready
@@ -48,5 +51,9 @@ export class ViewMapComponent {
         this.mapComponent.destroy().then(() => {
             this._location.back();
         });
+    }
+
+    ngOnDestroy() {
+        window.cancelAnimationFrame(this.animFrame);
     }
 }

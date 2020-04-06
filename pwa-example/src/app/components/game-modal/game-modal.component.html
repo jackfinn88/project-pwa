@@ -6,11 +6,6 @@
             </ion-button>
         </ion-buttons>
         <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
-        <ion-buttons slot="end">
-            <ion-button>
-                <ion-icon name="options"></ion-icon>
-            </ion-button>
-        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
@@ -53,8 +48,9 @@
             </div>
 
             <div>
-                <h3>Instructions</h3>
                 <div [ngSwitch]="gameType" class="job-instructions">
+                    <h3>Instructions</h3>
+                    <br>
                     <div *ngSwitchCase="'knightfall'">Extract the files and get out of the system. Move by destroying
                         protection
                         layers of the same colour and rotating the view to manouver yourself. Land from above to capture
@@ -67,7 +63,7 @@
             </div>
         </div>
         <div *ngIf="showAnim">
-            <div class="load">user.phub@dev:~$ </div>
+            <div class="load">{{player.user}}.phub@dev:~$ </div>
         </div>
     </div>
 
@@ -82,6 +78,8 @@
         <div *ngSwitchCase="'knightfall'" class="game-container knightfall-container">
             <div class="ui-overlay knightfall-overlay">
                 <ion-button (click)="onTestButtonClick()">TEST</ion-button>
+                <!--REMOVE-->
+
                 <p>Time: {{ timerText }}</p>
                 <ion-progress-bar [value]="timerProgress"></ion-progress-bar>
             </div>
@@ -93,10 +91,12 @@
         <div *ngSwitchCase="'starfall'" class="game-container starfall-container">
             <div class="ui-overlay starfall-overlay">
                 <ion-button (click)="onTestButtonClick()">TEST</ion-button>
+                <!--REMOVE-->
+
                 <p>Corrupted: {{ ((uiData.caught * 64) / 1000).toFixed(2) }} / {{ uiData.corrupt.toFixed(2) }}Mb</p>
-                <ion-progress-bar [value]="uiData.caughtProgress"></ion-progress-bar>
+                <ion-progress-bar color="success" [value]="uiData.caughtProgress"></ion-progress-bar>
                 <p>Complete: {{ ((uiData.lost * 64) / 1000).toFixed(2) }} / {{ uiData.complete.toFixed(2) }}Mb</p>
-                <ion-progress-bar [value]="uiData.lostProgress"></ion-progress-bar>
+                <ion-progress-bar color="danger" [value]="uiData.lostProgress"></ion-progress-bar>
             </div>
             <div id="game"></div>
         </div>
@@ -104,7 +104,28 @@
 
     <!--SCORE-->
     <div *ngIf="showScore" class="score-wrapper">
-        <h1>{{ feedback.header }}</h1>
-        <ion-button (click)="onDoneButtonClick()">DONE</ion-button>
+        <div class="job-info">
+            <h1>{{ feedback.header }}</h1>
+
+            <div class="rewards">
+                <ion-grid>
+                    <ion-row>
+                        <ion-col>
+                            <h3>{{ feedback.won ? 'Rewards' : 'Here\'s what you could have won.' }}</h3>
+                        </ion-col>
+                    </ion-row>
+                    <ion-row>
+                        <ion-col>Cash:</ion-col>
+                        <ion-col>{{ job.cash }}</ion-col>
+                    </ion-row>
+                    <ion-row>
+                        <ion-col>XP:</ion-col>
+                        <ion-col>{{ job.experience }}</ion-col>
+                    </ion-row>
+                </ion-grid>
+            </div>
+
+            <ion-button (click)="onDoneButtonClick()">DONE</ion-button>
+        </div>
     </div>
 </ion-content>

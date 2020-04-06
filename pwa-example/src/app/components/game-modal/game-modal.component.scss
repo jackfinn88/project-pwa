@@ -10,10 +10,10 @@ ion-col {
 }
 
 ion-row:not(:last-child) {
-    border-bottom: 1px dashed gray;
+    border-bottom: 1px dashed #242424;
 }
 
-.start-wrapper {
+.start-wrapper, .score-wrapper {
     text-align: center;
     height: 100%;
 }
@@ -28,18 +28,26 @@ ion-row:not(:last-child) {
 
 .job-info > div {
     height: 50%;
-    position: relative;
-}
-
-.job-info > div > div {
-    margin:20px;
 }
 
 .job-info h1 {
     margin: 0;
 }
 
-.start-wrapper ion-button {
+.job-instructions {
+    margin: 0 20px;
+}
+
+.job-instructions h3 {
+    margin: 0;
+}
+
+.rewards ion-grid {
+    font-size: 1.5em;
+    text-align: center;
+}
+
+.start-wrapper ion-button, .score-wrapper ion-button {
     position: absolute;
     margin-left: auto;
     margin-right: auto;

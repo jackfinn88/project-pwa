@@ -115,8 +115,8 @@ export class HomeComponent implements OnInit {
                     'web_cash': user.web_cash,
                     'exp': user.exp,
                     'level': user.level,
-                    'jobs-completed': 0,
-                    'jobs-failed': 0,
+                    'jobs-completed': user.completed,
+                    'jobs-failed': user.failed,
                     'active-jobs': [],
                     'job-data': {
                         'next-job-renewal': 0,
@@ -153,6 +153,8 @@ export class HomeComponent implements OnInit {
             'web_cash': 0,
             'exp': 0,
             'level': 1,
+            'complete': 0,
+            'failed': 0,
             'active-jobs': [],
             'job-data': {
                 'next-job-renewal': 0,

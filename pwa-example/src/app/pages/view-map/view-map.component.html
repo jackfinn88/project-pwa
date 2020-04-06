@@ -6,11 +6,6 @@
             </ion-button>
         </ion-buttons>
         <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
-        <ion-buttons slot="end">
-            <ion-button>
-                <ion-icon></ion-icon>
-            </ion-button>
-        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
@@ -20,11 +15,9 @@
 <ion-content>
     <div *ngIf="!loaded" class="loading-spinner">
         <ion-spinner name="crescent"></ion-spinner>
-        <h3>Loading Map</h3>
     </div>
 
     <div class="inner-content">
-
         <div class="map-view-container">
             <app-map-view (storageUpdate)="updateStats($event)">
             </app-map-view>

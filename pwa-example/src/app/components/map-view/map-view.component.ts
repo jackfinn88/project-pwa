@@ -158,7 +158,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
     showDeviceLocation(): void {
         console.log('showDeviceLocation');
-        this.map.locate({ setView: true, watch: true });
+        if (this.map) this.map.locate({ setView: true, watch: true });
 
         this.markLocations();
     }
@@ -202,13 +202,13 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     async presentModal(job: any, collectionIdx: number) {
-        console.log('presentModal', job)
         const modal = await this.modalCtrl.create({
             component: GameModalComponent,
             componentProps: {
                 'job': job,
                 'collectionId': collectionIdx,
-                'subject': this.modalCommunicationSubject
+                'subject': this.modalCommunicationSubject,
+                'player': this.player
             },
             cssClass: 'game-modal',
             animated: false,

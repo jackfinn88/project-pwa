@@ -4,67 +4,72 @@
     </ion-toolbar>
 </ion-header>
 
-<app-statbar [user]="saveData.currentUser.user" [cash]="saveData.currentUser.cash"
+<app-statbar *ngIf="showHome" [user]="saveData.currentUser.user" [cash]="saveData.currentUser.cash"
     [webcash]="saveData.currentUser.web_cash" [exp]="saveData.currentUser.exp">
 </app-statbar>
 
 <ion-content class="ion-padding">
-    <h1>Home Page</h1>
-    <h2>v14</h2>
+    <div style="height:90%">
+        <div class="page-description">
+            <h1>Welcome to PortHub</h1>
+            <p>Access local or remote network ports.</p>
+        </div>
 
-    <div *ngIf="showHome">
-        <ion-list lines="none">
-            <ion-item text-center>
-                <ion-button [routerLink]="['/jobs']">Jobs</ion-button>
-            </ion-item>
-            <ion-item text-center>
-                <ion-button [routerLink]="['/map']">Map</ion-button>
-            </ion-item>
-            <ion-item text-center>
-                <ion-button [routerLink]="['/inventory']">Inventory</ion-button>
-            </ion-item>
-            <ion-item text-center>
-                <ion-button [routerLink]="['/transfer']">Transfer</ion-button>
-            </ion-item>
-            <ion-item text-center>
-                <ion-button [routerLink]="['/account']">Account</ion-button>
-            </ion-item>
-            <ion-item>
-                <!--SPACE/REMOVE-->
-            </ion-item>
-            <ion-item text-center>
-                <ion-button [routerLink]="['/db']">Database</ion-button>
-            </ion-item>
-        </ion-list>
-    </div>
+        <div *ngIf="showHome">
+            <ion-list lines="none">
+                <ion-item class="ion-text-center">
+                    <ion-button [routerLink]="['/jobs']">Jobs</ion-button>
+                </ion-item>
+                <ion-item class="ion-text-center">
+                    <ion-button [routerLink]="['/map']">Map</ion-button>
+                </ion-item>
+                <ion-item class="ion-text-center">
+                    <ion-button [routerLink]="['/inventory']">Inventory</ion-button>
+                </ion-item>
+                <ion-item class="ion-text-center">
+                    <ion-button [routerLink]="['/transfer']">Transfer</ion-button>
+                </ion-item>
+                <ion-item class="ion-text-center">
+                    <ion-button [routerLink]="['/account']">Account</ion-button>
+                </ion-item>
+                <ion-item>
+                    <!--SPACE/REMOVE-->
+                </ion-item>
+                <ion-item class="ion-text-center">
+                    <ion-button [routerLink]="['/db']">Database</ion-button>
+                </ion-item>
+            </ion-list>
+        </div>
 
-    <div *ngIf="showLoading" class="loading-spinner">
-        <ion-spinner name="crescent"></ion-spinner>
-    </div>
+        <div *ngIf="showLoading" class="loading-spinner">
+            <ion-spinner name="crescent"></ion-spinner>
+        </div>
 
-    <div *ngIf="showForms" class="user-forms" [ngSwitch]="formView">
+        <div *ngIf="showForms" class="user-forms" [ngSwitch]="formView">
 
-        <div *ngIf="!changingForm">
-            <div *ngSwitchCase="'login'">
-                <app-login (onVerify)="onLogin($event)"></app-login>
+            <div *ngIf="!changingForm">
+                <div *ngSwitchCase="'login'">
+                    <app-login (onVerify)="onLogin($event)"></app-login>
+                </div>
+
+                <div *ngSwitchCase="'register'">
+                    <app-registration (onCreate)="onRegistration($event)"></app-registration>
+                </div>
+
+                <br>
+                <div class="toggle-form">
+                    <p>{{ toggleFormText.label }}</p>
+                    <ion-button #toggleView (click)="toggleForm()">{{ toggleFormText.button }}</ion-button>
+                </div>
+
+                <br>
+                <p style="font-size: .8em; font-style: italic; color: darkgrey">*Username and password must be between 6
+                    and
+                    16 characters.
+                </p>
             </div>
-
-            <div *ngSwitchCase="'register'">
-                <app-registration (onCreate)="onRegistration($event)"></app-registration>
-            </div>
-
-            <br>
-            <div class="toggle-form">
-                <p>{{ toggleFormText.label }}</p>
-                <ion-button #toggleView (click)="toggleForm()">{{ toggleFormText.button }}</ion-button>
-            </div>
-
-            <br>
-            <p style="font-size: .8em; font-style: italic; color: darkgrey">*Username and password must be between 6 and
-                16 characters.
-            </p>
         </div>
     </div>
 
-
+    <div class="footer">Next Level 2020</div>
 </ion-content>

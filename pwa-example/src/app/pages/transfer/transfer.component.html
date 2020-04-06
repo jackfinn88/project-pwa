@@ -6,11 +6,6 @@
             </ion-button>
         </ion-buttons>
         <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
-        <ion-buttons slot="end">
-            <ion-button>
-                <ion-icon></ion-icon>
-            </ion-button>
-        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
@@ -19,16 +14,20 @@
 </app-statbar>
 
 <ion-content class="ion-padding">
+    <div class="content">
+        <div class="page-description">
+            <h1>Transfer Money</h1>
+            <p>To be used in Lil' Thug Outlaw.</p>
+        </div>
 
-    <h1>Transfer Page</h1>
-
-    <div>
         <ion-list lines="none">
-            <ion-item *ngFor="let amount of availableAmounts" text-center>
+            <ion-item *ngFor="let amount of availableAmounts" class="ion-text-center">
                 <ion-button (click)="onTransferItemClick($event)">
                     <span class="input-currency">{{ amount }}</span>
                 </ion-button>
             </ion-item>
         </ion-list>
     </div>
+
+    <div class="footer">Next Level 2020</div>
 </ion-content>

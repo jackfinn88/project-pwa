@@ -24,6 +24,7 @@ export class GameModalComponent implements OnInit, OnDestroy {
     @Input() job: any;
     @Input() collectionId: any;
     @Input() subject: BehaviorSubject<any>;
+    @Input() player: any;
     gameType;
     fullScreenKey;
     config = {
@@ -137,6 +138,8 @@ export class GameModalComponent implements OnInit, OnDestroy {
         // show score/hide game
         this.gameEndText = 'SUCCESS';
         this.feedback['header'] = 'Well done!';
+        this.feedback['message'] = 'You smashed it!';
+        this.feedback["won"] = true;
 
         // show fade animation
         this.showFade = true;
@@ -159,6 +162,8 @@ export class GameModalComponent implements OnInit, OnDestroy {
         // show score/hide game
         this.gameEndText = 'FAILED';
         this.feedback['header'] = 'Unlucky!';
+        this.feedback['message'] = 'Try harder next time!';
+        this.feedback["won"] = false;
 
         // show fade animation
         this.showFade = true;

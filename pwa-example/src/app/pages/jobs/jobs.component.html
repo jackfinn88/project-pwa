@@ -6,11 +6,6 @@
             </ion-button>
         </ion-buttons>
         <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
-        <ion-buttons slot="end">
-            <ion-button>
-                <ion-icon></ion-icon>
-            </ion-button>
-        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 
@@ -21,67 +16,76 @@
 <ion-content>
     <div *ngIf="!loaded" class="loading-spinner">
         <ion-spinner name="crescent"></ion-spinner>
-        <h3>Loading Jobs</h3>
     </div>
 
-    <div *ngIf="loaded" class="job-content">
-        <h1>Jobs Page</h1>
+    <div *ngIf="loaded" class="content">
+        <div class="page-description">
+            <h1>Review and Accept Jobs</h1>
+            <p>Messages appear here, maximum of 5 jobs.</p>
+        </div>
 
-        <h6 [ngStyle]="{ 'color': this.maxJobsReached ? 'gray' : 'white'}">Next job in: {{countdown}} seconds</h6>
+        <div class="job-content">
+            <p class="job-countdown" [ngStyle]="{ 'color': this.maxJobsReached ? 'gray' : 'white'}">Next job in:
+                {{countdown}} seconds</p>
 
-        <ion-segment [(ngModel)]="segment">
-            <ion-segment-button value="available">
-                <ion-label>Available</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="player">
-                <ion-label>Current</ion-label>
-            </ion-segment-button>
-        </ion-segment>
+            <ion-segment [(ngModel)]="segment">
+                <ion-segment-button value="available">
+                    <ion-label>Available</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="player">
+                    <ion-label>Current</ion-label>
+                </ion-segment-button>
+            </ion-segment>
 
-        <div class="segments" [ngSwitch]="segment">
-            <div *ngSwitchCase="'available'" class="available-list">
-                <ion-list class="jobs-list" lines="none">
-                    <ion-item *ngFor="let job of availableJobsCollection; index as i" (click)="onJobItemClick($event)"
-                        [attr.id]="i">
-                        <div class="job-sender-thumb" [ngStyle]="{ 'background': job.colour}">
-                            <div>{{ job.sender.charAt(0) }}</div>
-                        </div>
+            <div class="segments" [ngSwitch]="segment">
+                <div *ngSwitchCase="'available'" class="available-list">
+                    <ion-list class="jobs-list" lines="none">
+                        <ion-item *ngFor="let job of availableJobsCollection; index as i"
+                            (click)="onJobItemClick($event)" [attr.id]="i">
+                            <div class="job-sender-thumb" [ngStyle]="{ 'background': job.colour}">
+                                <div>{{ job.sender.charAt(0) }}</div>
+                            </div>
 
-                        <div class="job-info">
-                            <div class="info-sender">{{ job.sender }}</div>
-                            <div class="info-remaining">Remaining time: </div>
-                            <div class="info-time">{{ math.floor(job.remaining / 1000) }}</div>
-                            <div class="info-description">{{ job.description }}text and text more text longer
-                                texerert text text</div>
-                        </div>
+                            <div class="job-info">
+                                <div class="info-sender">{{ job.sender }}</div>
+                                <div class="info-remaining">Remaining time: </div>
+                                <div class="info-time">{{ math.floor(job.remaining / 1000) }}</div>
+                                <div class="info-description">{{ job.description }}text and text more text longer
+                                    texerert text text teeeeeeeexxttttt loads of text and then sod it have some more
+                                    texty texty texxxxxt</div>
+                            </div>
 
-                        <div class="job-badge">
-                            <ion-badge color="primary">{{ job.type }}</ion-badge>
-                        </div>
-                    </ion-item>
-                </ion-list>
-            </div>
+                            <div class="job-badge">
+                                <ion-badge color="primary">{{ job.type }}</ion-badge>
+                            </div>
+                        </ion-item>
+                    </ion-list>
+                </div>
 
-            <div *ngSwitchCase="'player'" class="player-list">
-                <ion-list class="jobs-list" lines="none">
-                    <ion-item *ngFor="let job of playerJobsCollection; index as i" (click)="onJobItemClick($event)"
-                        [attr.id]="i">
-                        <div class="job-sender-thumb" [ngStyle]="{ 'background': job.colour}">
-                            <div>{{ job.sender.charAt(0) }}</div>
-                        </div>
+                <div *ngSwitchCase="'player'" class="player-list">
+                    <ion-list class="jobs-list" lines="none">
+                        <ion-item *ngFor="let job of playerJobsCollection; index as i" (click)="onJobItemClick($event)"
+                            [attr.id]="i">
+                            <div class="job-sender-thumb" [ngStyle]="{ 'background': job.colour}">
+                                <div>{{ job.sender.charAt(0) }}</div>
+                            </div>
 
-                        <div class="job-info">
-                            <div class="info-sender">{{ job.sender }}</div>
-                            <div class="info-description">{{ job.description }}text and text more text longer texerert
-                                text text</div>
-                        </div>
+                            <div class="job-info">
+                                <div class="info-sender">{{ job.sender }}</div>
+                                <div class="info-description">{{ job.description }}text and text more text longer
+                                    texerert
+                                    text text</div>
+                            </div>
 
-                        <div class="job-badge">
-                            <ion-badge color="primary">{{ job.type }}</ion-badge>
-                        </div>
-                    </ion-item>
-                </ion-list>
+                            <div class="job-badge">
+                                <ion-badge color="primary">{{ job.type }}</ion-badge>
+                            </div>
+                        </ion-item>
+                    </ion-list>
+                </div>
             </div>
         </div>
     </div>
+
+    <div class="footer">Next Level 2020</div>
 </ion-content>
