@@ -49,6 +49,7 @@ ion-button {
 
 ion-icon {
     color: #f90;
+    font-size: 24px;
 }
 
 ion-buttons ion-button {
@@ -103,14 +104,39 @@ ion-buttons ion-button {
     background: #f90;
     width: 50%;
     font-size: .7em;
-    border: 1px solid #242424;
     margin: 0 2px;
     border-radius: 5px;
 }
 
+.popup-container ion-button[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.submit-button {
+    background: #f90;
+    color: black;
+    letter-spacing: 2px;
+    font-weight: bold;
+    font-size: .9em;
+    padding: 8px;
+    text-transform: uppercase;
+    border-radius: 5px;
+    width: 98%;
+    height: 36px;
+    text-align: center;
+    margin: 4px 2px;
+    padding: 0 15px;
+}
+
+.submit-button[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
 .job-modal {
     width: 96%;
-    height: 60%;
+    height: 70%;
     margin: auto;
     border: 1px solid black;
     border-radius: 10px;
@@ -144,6 +170,7 @@ ion-buttons ion-button {
     background: #1b1b1b;
     padding: 6px;
     border-radius: 10px;
+    text-align: center;
 }
 
 .details-form ion-item {
@@ -163,7 +190,7 @@ ion-buttons ion-button {
 }
 
 .footer {
-    color: #242424;
+    color: darkgray;
     font-size: .7em;
     position: fixed;
     bottom: 16px;
@@ -179,7 +206,7 @@ ion-buttons ion-button {
 }
 
 .page-description {
-    height: 14%;
+    min-height: 14%;
     color: #fff;
     font-size: .9em;
     text-align: center;
@@ -190,7 +217,12 @@ ion-buttons ion-button {
     margin: 0;
 }
 
-
+@media all and (orientation:landscape) {
+    .home-content,
+    .content {
+        margin-bottom: 20%;
+    }
+}
 
 // tv flicker animation
 @keyframes flicker {

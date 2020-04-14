@@ -2,10 +2,67 @@ ion-content {
     --padding-top: 10% !important;
 }
 
-ion-list ion-button {
-    margin: auto;
+ion-list {
+    background: rgb(50, 50, 50) !important;
+}
+
+ion-item {
+    --color: #fff;
+    --background: darkgray;
+    --padding-start: 0px !important;
+    --padding-end: 0px !important;
+    --inner-padding-start: 0px !important;
+    --inner-padding-end: 0px !important;
+}
+
+ion-toggle {
+    padding: 8px;
+}
+
+.upgrade-description {
     width: 100%;
-    height: 80%;
+    height: 100%;
+}
+
+.upgrade-description > div {
+    height: 50%;
+}
+
+.upgrade-description > div p {
+    display: inline-block;
+    margin: 0;
+    vertical-align: sub;
+    margin-left: 16px;
+    font-size: .7em;
+    color: #242424;
+}
+
+.upgrade-list ion-button {
+    width: 20%;
+    font-size: .6em;
+}
+
+.upgrade-list-wrapper {
+    margin: 20px 0;
+}
+
+.upgrade-list-wrapper h1 {
+    display: inline-block;
+    text-transform: uppercase;
+}
+
+.upgrade-list-wrapper > p {
+    display: inline-block;
+    position: absolute;
+    right: 24px;
+    color: #f90;
+    font-size: .7em;
+}
+
+.upgrade-list ion-item {
+    cursor: pointer;
+    border: 1px solid grey;
+    --min-height: 50px;
 }
 
 .input-currency {
@@ -17,4 +74,13 @@ ion-list ion-button {
     top: 0;
     left: -8px;
     content:"£";
+}
+
+@media all and (orientation:landscape) {
+    ion-content {
+        --padding-top: 5% !important;
+    }
+    .content {
+        margin-bottom: 40%;
+    }
 }

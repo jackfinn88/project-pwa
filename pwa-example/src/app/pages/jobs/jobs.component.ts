@@ -17,7 +17,7 @@ export class JobsComponent implements OnInit, OnDestroy {
     availableJobsData;
     // maximum available jobs
     maxJobAllowed = 5;
-    // flag whther max has been reached
+    // flag whether max has been reached
     maxJobsReached;
     // current collection
     availableJobsCollection = [];
@@ -29,7 +29,7 @@ export class JobsComponent implements OnInit, OnDestroy {
     nextJobTimer;
     // flag to restrict job creation to 1 at any time
     renewalInProcess = false;
-    // countdown count for view
+    // countdown value for view
     countdown = 0;
     // timer to update countdown value for view
     countdownTimer;
@@ -39,7 +39,7 @@ export class JobsComponent implements OnInit, OnDestroy {
     saveData;
     // player's job collection
     playerJobsCollection = [];
-    // for use in html data-binding
+    // to use Math within html data-binding
     math = Math;
     // data-binding to ion-segment value
     segment = 'available';
@@ -50,7 +50,6 @@ export class JobsComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        console.log('ngOnInit');
         this.setupData();
 
         this.maxJobsReached = this.availableJobsCollection.length < this.maxJobAllowed ? false : true;
@@ -63,26 +62,26 @@ export class JobsComponent implements OnInit, OnDestroy {
         }, 1000);
     }
 
+    // collect player data for modification
     setupData() {
         this.saveData = JSON.parse(localStorage.getItem('saveData'));
 
+        // get current available jobs and the last defined next renewal time
         this.availableJobsData = this.saveData.currentUser["job-data"];
-        this.nextJobRenewal = this.availableJobsData['next-job-renewal'];
         this.availableJobsCollection = this.availableJobsData['jobs'];
+        this.nextJobRenewal = this.availableJobsData['next-job-renewal'];
 
+        // get player's jobs
         this.playerData = this.saveData.currentUser;
         this.playerJobsCollection = this.playerData['active-jobs'];
     }
 
     // check past duration until next job
     checkJobRenewal() {
-        console.log('checkJobRenewal')
         if (this.availableJobsCollection.length < this.maxJobAllowed) {
             let currentTime = Date.now();
             let remaining = this.nextJobRenewal - currentTime;
             let countdown = remaining > 0 ? remaining : 0;
-
-            console.log(countdown)
 
             this.beginRenewal(countdown);
         }
@@ -90,18 +89,17 @@ export class JobsComponent implements OnInit, OnDestroy {
 
     // begin countdown until next job
     beginRenewal(countdown) {
-        console.log('beginRenewal');
-        console.log('next job in ', Math.floor(countdown / 1000), ' seconds');
+        this.countdown = countdown;
 
         // capture when job should be created
         this.nextJobRenewal = Date.now() + countdown;
 
         if (!this.renewalInProcess) {
-            this.countdown = Math.floor(countdown / 1000);
+            // this.countdown = Math.floor(countdown / 1000);
             this._cdr.detectChanges(); // required for updating view of data-binding
             // show countdown
             this.countdownTimer = setInterval(() => {
-                this.countdown--;
+                this.countdown -= 1000;
                 this._cdr.detectChanges(); // required for updating view of data-binding
             }, 1000);
 
@@ -117,8 +115,6 @@ export class JobsComponent implements OnInit, OnDestroy {
                 // create job if still required
                 if (this.availableJobsCollection.length < this.maxJobAllowed) {
                     this.createJob();
-                } else {
-                    console.log('max jobs reached:', this.maxJobAllowed);
                 }
             }, countdown);
         }
@@ -126,12 +122,10 @@ export class JobsComponent implements OnInit, OnDestroy {
 
     // update remaining time and clear expired jobs
     updateAvailableJobs() {
-        console.log('updateAvailableJobs');
-        let jobs;
         let currentTime = Date.now();
 
         // filter out expired jobs
-        jobs = this.availableJobsData.jobs.filter((job) => {
+        let jobs = this.availableJobsData.jobs.filter((job) => {
             // update remaining time
             job.remaining = job.duration - (currentTime - job.created);
             // return if still active
@@ -147,11 +141,12 @@ export class JobsComponent implements OnInit, OnDestroy {
             if (!this.renewalInProcess) {
                 this.maxJobsReached = false;
                 this._cdr.detectChanges();
-                let countdown = Math.floor(Math.random() * 10000) + 5000;
-                this.beginRenewal(countdown);
+                let milliseconds = { min: 6000, max: 9000 }; // 6-9s testing - tbd: remove
+                // let milliseconds = { min: 600000, max: 900000 }; // 10-15mins
+                let duration = this.getRandomIntInclusive(milliseconds.min, milliseconds.max);
+                this.beginRenewal(duration);
             }
         } else {
-
             this.maxJobsReached = true;
             this._cdr.detectChanges();
         }
@@ -161,7 +156,6 @@ export class JobsComponent implements OnInit, OnDestroy {
     }
 
     addJobToCollection(job) {
-        console.log('addJobToCollection', job);
         // use filter to check job exists AND:
         let jobs = this.availableJobsCollection.filter((availableJob) => {
             // a) add to player jobs collection
@@ -183,7 +177,6 @@ export class JobsComponent implements OnInit, OnDestroy {
     }
 
     removeJobFromCollection(id) {
-        console.log('removeJobFromCollection');
         this.playerJobsCollection.splice(id, 1);
         this._cdr.detectChanges(); // required for updating view of data-binding
 
@@ -192,7 +185,6 @@ export class JobsComponent implements OnInit, OnDestroy {
 
     // present modal for job item
     onJobItemClick(event) {
-        console.log('onJobItemClick', event);
         // id is attached to srcElement from ngFor
         const id = event.srcElement.id;
         setTimeout(() => {
@@ -201,93 +193,137 @@ export class JobsComponent implements OnInit, OnDestroy {
     }
 
     // create new available job
-    createJob() { // tbd: reinstate geolocation
-        console.log('createJob');
-        let userCoords = { 'lat': 50.8579, 'lng': 0.5767 };
-        // if (navigator.geolocation) {
-        // navigator.geolocation.getCurrentPosition((position) => {
-        // gather time data
-        let currentTime = Date.now();
-        let seconds = 60;
-        let duration = seconds * 1000;
+    createJob() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                let userCoords = { 'lat': position.coords.latitude, 'lng': position.coords.longitude };
 
-        // generate random job
-        let randMax = this.jobsMetaData.jobs.length;
-        let rand = Math.floor(Math.random() * randMax);
-        let randJob = this.jobsMetaData.jobs[rand];
+                // gather time data (how long job is available)
+                let currentTime = Date.now();
+                let milliseconds = { min: 60000, max: 90000 }; // 60-90s testing - tbd: remove
+                // let milliseconds = { min: 2.4e+6, max: 4.8e+6 }; // 40-80 mins
+                let duration = this.getRandomIntInclusive(milliseconds.min, milliseconds.max);
 
-        // let randDur = Math.floor(Math.random() * 60) + 40;
-        // duration = randDur;
+                // find available characters for player level
+                let availableCharacters = this.jobsMetaData.characters.filter((character) => {
+                    return character.unlocksAt <= this.playerData.level;
+                });
 
-        // generate random coords
-        // let centre = { 'lat': position.coords.latitude, 'lng': position.coords.latitude }; // user location is centre
-        let centre = { 'lat': userCoords.lat, 'lng': userCoords.lng }; // user location is centre
-        let radius = 1000; // metres
-        let latlng = this.randomLatLng(centre, radius);
+                // character details
+                let character = availableCharacters[this.getRandomIntInclusive(0, availableCharacters.length - 1)];
+                let greeting = character.greetings[this.getRandomIntInclusive(0, character.greetings.length - 1)];
+                let signoff = character.signoffs[this.getRandomIntInclusive(0, character.signoffs.length - 1)];
+                let gameIdx = this.getRandomIntInclusive(0, character.problems.length - 1);
+                let game = character.problems[gameIdx];
 
-        let sender;
-        if (Math.random() > 0.5) {
-            sender = 'Lester';
-            randJob.colour = 'green';
+                // job
+                let name = game.issue.subjects[this.getRandomIntInclusive(0, game.issue.subjects.length - 1)];
+                let problem = game.issue.messages[this.getRandomIntInclusive(0, game.issue.messages.length - 1)];
+                let description = greeting + ' ' + problem + ' ' + signoff;
+
+                // rewards
+                let min = character.cash.min / 100;
+                let max = character.cash.max / 100;
+                let cash = this.getRandomIntInclusive(min, max) * 100;
+                min = character.exp.min / 100;
+                max = character.exp.max / 100;
+                let exp = this.getRandomIntInclusive(min, max) * 100;
+
+                // generate random coords
+                let centre = { 'lat': userCoords.lat, 'lng': userCoords.lng }; // user location is centre
+                let radius = 400; // metres
+                let latlng = this.randomLatLng(centre, radius);
+
+                let type; // local/remote
+                if (Math.random() > 0.3) {
+                    type = 'Local';
+                } else {
+                    type = 'Remote';
+                    cash = cash * .8; // remote jobs earn less
+                    latlng = { 'lat': null, 'lng': null }; // null latlngs are populated by devices current position
+                }
+
+                let job = {
+                    "name": name,
+                    "description": description,
+                    "gameIdx": gameIdx + 1,
+                    "game": game,
+                    "cash": cash,
+                    "experience": exp,
+                    "sender": character.name,
+                    "type": type,
+                    "created": currentTime,
+                    "duration": duration,
+                    "remaining": duration,
+                    "lat": latlng.lat,
+                    "lng": latlng.lng,
+                    "colour": character.colour
+                }
+
+                this.availableJobsCollection.push(job);
+
+                this._cdr.detectChanges(); // required for updating view of data-binding
+
+                // save new job
+                this.save();
+            },
+                (err) => {
+                    // geolocation available but getCurrentPosition failed, wait 1 frame then try again
+                    requestAnimationFrame(() => {
+                        this.createJob();
+                    })
+                }
+            );
         } else {
-            sender = 'Unknown';
-            randJob.colour = 'gray';
+            this.presentToast('Geolocation is not supported', 2000, 'danger');
         }
-        let type;
-        if (Math.random() > 0.3) {
-            type = 'Local';
-        } else {
-            type = 'Remote';
-            randJob.cash = randJob.cash * .8;
-            latlng = userCoords;
-        }
-        console.log('type:', type, randJob.cash);
-
-        this.availableJobsCollection.push({
-            name: randJob.title,
-            description: randJob.description,
-            difficulty: randJob.difficulty,
-            game: randJob.game,
-            experience: randJob.exp,
-            cash: randJob.cash,
-            // add dynamic data
-            sender: sender,
-            type: type,
-            created: currentTime,
-            duration: duration,
-            remaining: duration,
-            lat: latlng.lat,
-            lng: latlng.lng,
-            colour: randJob.colour
-        });
-        this._cdr.detectChanges(); // required for updating view of data-binding
-
-        // save new job
-        this.save();
-        /*},
-            (err) => {
-                // geolocation available but getCurrentPosition failed, wait 1 frame then try again
-                requestAnimationFrame(() => {
-                    this.createJob();
-                })
-            }
-        );
-    } else {
-        this.presentToast('Geolocation is not supported', 2000, 'danger');
-    }*/
     }
 
-    //Calc the distance between 2 coordinates as the crow flies
+    // convert milliseconds to simple H:M:S format - https://stackoverflow.com/a/58826445/10166336
+    timeConversion(duration) {
+        let portions: string[] = [];
+
+        let msInHour = 1000 * 60 * 60;
+        let hours = Math.trunc(duration / msInHour);
+        if (hours > 0) {
+            portions.push(hours + 'h');
+            duration = duration - (hours * msInHour);
+        }
+
+        let msInMinute = 1000 * 60;
+        let minutes = Math.trunc(duration / msInMinute);
+        if (minutes > 0) {
+            portions.push(minutes + 'm');
+            duration = duration - (minutes * msInMinute);
+        }
+
+        let seconds = Math.trunc(duration / 1000);
+        if (seconds > 0) {
+            portions.push(seconds + 's');
+        }
+
+        return portions.join(' ');
+    }
+
+    // generate random int between to values (including min and max)
+    getRandomIntInclusive(minimum, maximum) {
+        let min = Math.ceil(minimum);
+        let max = Math.floor(maximum);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // calculate distance between 2 coordinates
     distance(lat1, lon1, lat2, lon2) {
         var R = 6371000;
         var a = 0.5 - Math.cos((lat2 - lat1) * Math.PI / 180) / 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * (1 - Math.cos((lon2 - lon1) * Math.PI / 180)) / 2;
         return R * 2 * Math.asin(Math.sqrt(a));
     }
 
+    // find random latlng within given radius (without using map component) - https://stackoverflow.com/a/31280435/10166336
     randomLatLng(center, radius) {
         var y0 = center.lat;
         var x0 = center.lng;
-        var rd = radius / 111300; //about 111300 meters in one degree
+        var rd = radius / 111300; // about 111300 meters in one degree
 
         var u = Math.random();
         var v = Math.random();
@@ -297,7 +333,7 @@ export class JobsComponent implements OnInit, OnDestroy {
         var x = w * Math.cos(t);
         var y = w * Math.sin(t);
 
-        //Adjust the x-coordinate for the shrinking of the east-west distances
+        // adjust the x-coordinate for the shrinking of the east-west distances
         var xp = x / Math.cos(y0);
 
         var newlat = y + y0;
@@ -310,11 +346,12 @@ export class JobsComponent implements OnInit, OnDestroy {
     }
 
     // show job modal component
-    async presentModal(jobId: number) {
-        console.log('presentModal', jobId);
-        const job = this.segment === 'available' ? this.availableJobsCollection[jobId] : this.playerJobsCollection[jobId];
-        console.log('JOB', job);
-        const modal = await this.modalController.create({
+    async presentModal(jobId) {
+        // which collection are we currently looking at
+        let job = this.segment === 'available' ? this.availableJobsCollection[jobId] : this.playerJobsCollection[jobId];
+
+        // create modal and pass relevant data via props
+        let modal = await this.modalController.create({
             component: JobModalComponent,
             componentProps: {
                 'id': jobId,
@@ -327,6 +364,7 @@ export class JobsComponent implements OnInit, OnDestroy {
             backdropDismiss: true
         });
 
+        // add or remove job from user response
         modal.onDidDismiss().then((data) => {
             if (data.data) {
                 let response = data.data as any;
@@ -341,7 +379,7 @@ export class JobsComponent implements OnInit, OnDestroy {
     }
 
     async presentToast(message, duration, colour) {
-        const toast = await this.toastController.create({
+        let toast = await this.toastController.create({
             message: message,
             duration: duration,
             color: colour,
@@ -350,21 +388,24 @@ export class JobsComponent implements OnInit, OnDestroy {
         toast.present();
     }
 
+    // update player data for storage
     save() {
+        // assign player jobs
         this.playerData['active-jobs'] = this.playerJobsCollection;
+
+        // assign available job data
         this.availableJobsData['next-job-renewal'] = this.nextJobRenewal;
         this.availableJobsData['jobs'] = this.availableJobsCollection;
-
         this.playerData["job-data"] = this.availableJobsData;
 
+        // update currentUser
         this.saveData.currentUser = this.playerData;
 
+        // update device accounts
         let idx = this.saveData.accounts.findIndex(account => account.id === this.playerData.id);
         this.saveData.accounts.splice(idx, 1, this.playerData);
 
         localStorage.setItem('saveData', JSON.stringify(this.saveData));
-
-        console.log('save', this.playerData);
     }
 
     // callback for button

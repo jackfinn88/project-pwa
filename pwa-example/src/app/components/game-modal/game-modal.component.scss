@@ -27,7 +27,7 @@ ion-row:not(:last-child) {
 }
 
 .job-info > div {
-    height: 50%;
+    height: 36%;
 }
 
 .job-info h1 {
@@ -90,17 +90,34 @@ ion-row:not(:last-child) {
     font-size: .8em;
 }
 
-.knightfall-container {
+.fallproof-container {
     position: relative;
 }
 
-.knightfall-overlay {
+.fallproof-overlay {
     width: 100%;
 }
 
-.knightfall-overlay ion-progress-bar {
+.fallproof-overlay ion-progress-bar {
     --buffer-background: darkgray;
     --progress-background: #f90;
+}
+
+@media all and (orientation:landscape) {
+    .hide-landscape {
+        display: none;
+    }
+
+    .job-info > div {
+        height: 36%;
+        margin: 20px auto;
+    }
+}
+
+@media all and (orientation:portrait) {
+    .rewards h3 {
+        margin: 20px auto;
+    }
 }
 
 // fade animation

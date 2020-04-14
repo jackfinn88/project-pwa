@@ -11,33 +11,29 @@
 
 <ion-content>
     <ion-grid>
-        <ion-row>
+        <ion-row class="hide-landscape">
             <ion-col size="3">Subject:</ion-col>
             <ion-col>{{ job.name }}</ion-col>
         </ion-row>
-        <ion-row>
+        <ion-row class="hide-landscape">
             <ion-col size="3">Sent:</ion-col>
             <ion-col>{{ job.sent }}</ion-col>
         </ion-row>
-        <ion-row>
+        <ion-row class="hide-landscape">
             <ion-col size="3">Cash:</ion-col>
             <ion-col>£{{ job.cash }}</ion-col>
-        </ion-row>
-        <ion-row>
             <ion-col size="3">Exp:</ion-col>
             <ion-col>{{ job.experience }}</ion-col>
         </ion-row>
-        <ion-row>
-            <ion-col size="3">Difficulty:</ion-col>
-            <ion-col>{{ job.difficulty }}</ion-col>
-        </ion-row>
-        <ion-row>
+        <ion-row class="hide-landscape">
             <ion-col size="3">Plug-in:</ion-col>
-            <ion-col>{{ job.game }}</ion-col>
+            <ion-col>{{ job.game.name }}.exe</ion-col>
         </ion-row>
         <ion-row>
             <ion-col size="3">Message:</ion-col>
-            <ion-col>{{ job.description }}TESSFDdlsakjd dsajkhfaskfnsd dsakjfhsks sdkfhaskdfasf kuhdfsbasfkadhf
+        </ion-row>
+        <ion-row>
+            <ion-col>{{ job.description }}
             </ion-col>
         </ion-row>
     </ion-grid>

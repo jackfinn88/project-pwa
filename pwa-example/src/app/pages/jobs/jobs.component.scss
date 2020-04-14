@@ -99,13 +99,6 @@ ion-segment-button {
 .info-sender {
     margin-bottom : 4px;
 }
-.info-remaining {
-    position: absolute;
-    right: 16px;
-    margin-left:  auto;
-    margin-right: 0;
-    font-size: .6em;
-}
 
 .info-time {
     position: absolute;
@@ -132,4 +125,13 @@ ion-segment-button {
 
 .job-badge ion-badge {
     --ion-color-base: #f90 !important;
+}
+
+@media all and (orientation:landscape) {
+    .jobs-list {
+        margin-bottom: 20%;
+    }
+    ion-content {
+        --padding-top: 5% !important;
+    }
 }

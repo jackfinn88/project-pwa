@@ -1,7 +1,6 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { ApiService } from 'src/app/providers/api.service';
-import { Record } from 'src/app/util/record';
 
 @Component({
     selector: 'app-registration',
@@ -17,29 +16,61 @@ export class RegistrationComponent implements OnInit {
     ngOnInit() {
         this.registerForm = new FormGroup({
             user: new FormControl('', [Validators.required, Validators.minLength(6), Validators.maxLength(16)]),
-            pass: new FormControl('', [Validators.required, Validators.minLength(6), Validators.maxLength(16)])
-        })
+            pass: new FormControl('', [Validators.required, Validators.minLength(6), Validators.maxLength(16)]),
+            confirm: new FormControl('', [Validators.compose([Validators.required, this.validateAreEqual.bind(this)])])
+        });
+    }
+
+    validateAreEqual(fieldControl: FormControl) {
+        if (this.registerForm) {
+            return fieldControl.value === this.registerForm.get("pass").value ? null : {
+                NotEqual: true
+            };
+        }
     }
 
     onSubmit() {
-        console.log(this.registerForm);
-        let record = {
-            user: this.registerForm.value.user,
-            pass: this.registerForm.value.pass,
-            cash: 0,
-            web_cash: 0,
-            exp: 0,
-            level: 0,
-            completed: 0,
-            failed: 0
-        }
-        // tbd: create
-        this.apiService.createRecord(record).subscribe((record: Record) => {
-            if (record) {
-                console.log("Record created, ", record);
-
-                this.onCreate.emit(record);
+        if (!this.registerForm.valid) {
+            return;
+        } else {
+            let record = {
+                user: this.registerForm.value.user,
+                pass: this.registerForm.value.pass,
+                ph_cash: 0,
+                ph_exp: 0,
+                ph_total_exp: 0,
+                ph_level: 1,
+                ph_completed: 0,
+                ph_failed: 0,
+                ph_game01_upgrade01_level: 0,
+                ph_game01_upgrade02_level: 0,
+                ph_game02_upgrade01_level: 0,
+                ph_game02_upgrade02_level: 0,
+                ph_game01_upgrade01_active: false,
+                ph_game01_upgrade02_active: false,
+                ph_game02_upgrade01_active: false,
+                ph_game02_upgrade02_active: false,
+                ph_game01_dual: false,
+                ph_game02_dual: false,
+                lto_equipped: 'pistol',
+                lto_cash: 500,
+                lto_exp: 0,
+                lto_total_exp: 0,
+                lto_player_level: 1,
+                lto_player_next_level: 2000,
+                lto_game_level: 1,
+                lto_sfx: 5,
+                lto_music: 5,
+                lto_difficulty: 2
             }
-        });
+
+            this.apiService.createRecord(record).subscribe((record) => {
+                if (record) {
+                    console.log("Record created, ", record);
+
+                    this.onCreate.emit(record);
+                }
+            });
+        }
     }
 }

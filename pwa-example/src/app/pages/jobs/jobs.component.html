@@ -10,7 +10,7 @@
 </ion-header>
 
 <app-statbar [user]="saveData.currentUser.user" [cash]="saveData.currentUser.cash"
-    [webcash]="saveData.currentUser.web_cash" [exp]="saveData.currentUser.exp">
+    [webcash]="saveData.currentUser.webcash" [exp]="saveData.currentUser.level">
 </app-statbar>
 
 <ion-content>
@@ -21,12 +21,12 @@
     <div *ngIf="loaded" class="content">
         <div class="page-description">
             <h1>Review and Accept Jobs</h1>
-            <p>Messages appear here, maximum of 5 jobs.</p>
+            <p>Messages appear here (5 max)</p>
         </div>
 
         <div class="job-content">
             <p class="job-countdown" [ngStyle]="{ 'color': this.maxJobsReached ? 'gray' : 'white'}">Next job in:
-                {{countdown}} seconds</p>
+                {{timeConversion(countdown)}}</p>
 
             <ion-segment [(ngModel)]="segment">
                 <ion-segment-button value="available">
@@ -48,11 +48,8 @@
 
                             <div class="job-info">
                                 <div class="info-sender">{{ job.sender }}</div>
-                                <div class="info-remaining">Remaining time: </div>
-                                <div class="info-time">{{ math.floor(job.remaining / 1000) }}</div>
-                                <div class="info-description">{{ job.description }}text and text more text longer
-                                    texerert text text teeeeeeeexxttttt loads of text and then sod it have some more
-                                    texty texty texxxxxt</div>
+                                <div class="info-time">Remaining time: {{ timeConversion(job.remaining) }}</div>
+                                <div class="info-description">{{ job.description }}</div>
                             </div>
 
                             <div class="job-badge">
@@ -72,9 +69,7 @@
 
                             <div class="job-info">
                                 <div class="info-sender">{{ job.sender }}</div>
-                                <div class="info-description">{{ job.description }}text and text more text longer
-                                    texerert
-                                    text text</div>
+                                <div class="info-description">{{ job.description }}</div>
                             </div>
 
                             <div class="job-badge">
@@ -87,5 +82,5 @@
         </div>
     </div>
 
-    <div class="footer">Next Level 2020</div>
+    <div class="footer">2020 (Next Level Games)</div>
 </ion-content>

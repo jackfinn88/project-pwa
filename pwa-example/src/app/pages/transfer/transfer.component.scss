@@ -18,3 +18,9 @@ ion-list ion-button {
     left: -8px;
     content:"£";
 }
+
+@media all and (orientation:landscape) {
+    ion-content {
+        --padding-top: 5% !important;
+    }
+}

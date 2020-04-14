@@ -6,7 +6,6 @@ import { ToastController, ModalController } from '@ionic/angular';
 import { GameModalComponent } from '../game-modal/game-modal.component';
 import { BehaviorSubject } from 'rxjs';
 import { ApiService } from 'src/app/providers/api.service';
-import { Record } from 'src/app/util/record';
 
 @Component({
     selector: 'app-map-view',
@@ -22,21 +21,24 @@ export class MapViewComponent implements OnInit, OnDestroy {
     map;
     userLocation;
     routingControl;
-    circles;
+    circles = [];
     currentWaypoint;
     currentPopup;
     jobMarkers = [];
     saveData;
+    account;
     player;
     playerJobsCollection;
+    levelThresholds = [1000, 2500, 5000, 7500, 10000, 15000, 25000, 35000, 50000, 100000, 125000, 150000, 175000, 200000, 250000, 400000, 600000, 850000, 1000000];
 
+    // custom icon
     markerIcon = L.icon({
         iconUrl: 'assets/icons/custom/map-marker.png',
         shadowUrl: 'assets/icons/custom/map-marker-shadow.png',
 
-        iconSize: [38, 56], // size of the icon
+        iconSize: [30, 45], // size of the icon
         shadowSize: [42, 34], // size of the shadow
-        iconAnchor: [20, 56], // point of the icon which will correspond to marker's location
+        iconAnchor: [15, 45], // point of the icon which will correspond to marker's location
         shadowAnchor: [4, 34],  // the same for the shadow
     });
     modalCommunicationSubject;
@@ -55,6 +57,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
         console.log('setupPlayerData')
         // get data from storage
         this.saveData = JSON.parse(localStorage.getItem('saveData'));
+        this.account = JSON.parse(localStorage.getItem('account'));
         this.player = this.saveData.currentUser;
 
         // extract data
@@ -65,7 +68,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
     // store current data regarding available jobs
     save() {
         console.log('save');
-        // this.saveData.currentUser['active-jobs'] = this.playerJobsCollection;
         this.player['active-jobs'] = this.playerJobsCollection;
         this.saveData.currentUser = this.player;
 
@@ -90,7 +92,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
             navigator.geolocation.getCurrentPosition((position) => {
                 this.userLocation = new L.LatLng(position.coords.latitude, position.coords.longitude);
                 console.log(this.userLocation)
-                // this.userLocation = { 'lat': position.coords.latitude, 'lng': position.coords.latitude, 'radius': position.coords.accuracy / 2 };
                 this.initializeMap();
             });
         } else {
@@ -147,9 +148,12 @@ export class MapViewComponent implements OnInit, OnDestroy {
         })
         setTimeout(() => {
             let marker: L.Marker;
-            this.jobMarkers = []; // tbd: clear markers after game completion
+            this.jobMarkers = [];
             this.playerJobsCollection.forEach((job, idx) => {
-                console.log('planting marker for job ' + (idx + 1));
+                console.log('markLocations', job);
+                let coords = (job.lat && job.lng) ? { lat: job.lat, lng: job.lng } : { lat: this.userLocation.lat, lng: this.userLocation.lng };
+                job.lat = coords.lat;
+                job.lng = coords.lng;
                 marker = L.marker([job.lat, job.lng], { icon: this.markerIcon }).on('click', () => { this.onMarkerClick(job, idx) }).addTo(this.map);
                 this.jobMarkers.push(marker);
             });
@@ -158,7 +162,12 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
     showDeviceLocation(): void {
         console.log('showDeviceLocation');
+        // setView once to get initial map location
         if (this.map) this.map.locate({ setView: true, watch: true });
+        setTimeout(() => {
+            if (this.map) this.map.stopLocate();
+            if (this.map) this.map.locate({ watch: true });
+        }, 1000);
 
         this.markLocations();
     }
@@ -186,22 +195,24 @@ export class MapViewComponent implements OnInit, OnDestroy {
         });
     }
 
-    clearWaypointMarkers(): void {
+    clearWaypointMarkers() {
+        // route control appends 2 markers with void sources regardless of the success of its request - remove n amount that may have been added
         let markers = Array.from(this.mapElement.querySelector('.leaflet-marker-pane').querySelectorAll('.leaflet-marker-icon'));
-        markers.splice(0, 3);
+        // collect all but splice actual player markers out to only remove the n that have been added from routing
+        markers.splice(0, this.playerJobsCollection.length);
         markers.forEach((marker) => {
             marker.remove();
         });
     }
 
-    onMarkerClick(job: any, collectionIdx: number): void {
+    onMarkerClick(job, collectionIdx) {
         let content = this.createPopupContent(job, collectionIdx);
         L.popup()
             .setLatLng([job.lat, job.lng])
             .setContent(content).openOn(this.map);
     }
 
-    async presentModal(job: any, collectionIdx: number) {
+    async presentModal(job, collectionIdx) {
         const modal = await this.modalCtrl.create({
             component: GameModalComponent,
             componentProps: {
@@ -215,9 +226,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
         });
 
         modal.onDidDismiss().then(() => {
-            console.log('modaldismiss', this.modalCommunicationSubject._value);
-            console.log('job', job);
-            console.log('player', this.player);
             let data = this.modalCommunicationSubject._value;
             if (data["game-started"] === true) {
                 let player = this.player;
@@ -227,13 +235,37 @@ export class MapViewComponent implements OnInit, OnDestroy {
                     message = 'Job completed. Cash: +£' + job["cash"] + ' / XP: +' + job["experience"] + '.';
                     colour = 'success';
 
-                    player["cash"] = parseInt(player["cash"], 10) + job["cash"];
-                    player["exp"] = parseInt(player["exp"], 10) + job["experience"];
                     player["jobs-completed"] = parseInt(player["jobs-completed"], 10) + 1;
-                    // tbd: player progession (if p.exp + j.exp > threshold = p.level++) etc
+                    player["cash"] = parseInt(player["cash"], 10) + job["cash"];
+
+                    // tally up xp and check for level up
+                    let totalXp = parseInt(player["total-exp"], 10);
+                    let currentXp = parseInt(player["exp"], 10);
+                    let currentLevel = parseInt(player["level"], 10);
+                    let jobXp = job["experience"];
+                    if (currentXp + jobXp >= this.levelThresholds[currentLevel - 1]) {
+                        // level up
+                        let diff = (currentXp + jobXp) - this.levelThresholds[currentLevel - 1];
+                        currentXp = diff;
+                        currentLevel++;
+
+                        // tbd: check extra level up from xp
+                        // if (diff > this.levelThresholds[currentLevel]) // level up again
+
+                        // notify user
+                        setTimeout(() => {
+                            this.presentToast('Congratulations! You are now Level ' + currentLevel + '!', 3000, 'warning');
+                        }, 3500);
+                    } else {
+                        currentXp += jobXp;
+                    }
+                    totalXp += jobXp;
+                    player["exp"] = currentXp;
+                    player["total-exp"] = totalXp;
+                    player["level"] = currentLevel;
                 } else {
                     // game lose
-                    message = 'Job failed. Better luck next time.';
+                    message = 'Job failed, better luck next time.';
                     colour = 'danger';
                     player["jobs-failed"] = parseInt(player["jobs-failed"], 10) + 1;
                 }
@@ -242,6 +274,8 @@ export class MapViewComponent implements OnInit, OnDestroy {
                 this.removeJobFromCollection(collectionIdx);
                 this.markLocations();
                 this.presentToast(message, 2000, colour);
+
+                this.save();
             }
         });
 
@@ -251,13 +285,9 @@ export class MapViewComponent implements OnInit, OnDestroy {
     removeJobFromCollection(id) {
         console.log('removeJobFromCollection');
         this.playerJobsCollection.splice(id, 1);
-
-        // tbd: remove markers
-
-        this.save();
     }
 
-    createPopupContent(job: any, collectionIdx: number): HTMLDivElement {
+    createPopupContent(job, collectionIdx) {
         const container = document.createElement('div'),
             titleText = document.createElement('p'),
             senderText = document.createElement('p'),
@@ -267,10 +297,10 @@ export class MapViewComponent implements OnInit, OnDestroy {
             waypointBtn = document.createElement('ion-button'),
             playGameBtn = document.createElement('ion-button');
 
-        titleText.textContent = 'Title: ' + job.name;
+        titleText.textContent = job.name;
         senderText.textContent = 'Sent by: ' + job.sender;
         rewardText.textContent = 'Rewards: £' + job.cash + '  /  XP: ' + job.experience;
-        gameText.textContent = 'Plug-in: ' + (job.game < 2 ? 'starfall.exe' : 'knightfall.exe');
+        gameText.textContent = 'Plug-in: ' + (job.gameIdx < 2 ? 'blitz.exe' : 'fallproof.exe');
 
         container.appendChild(titleText);
         container.appendChild(senderText);
@@ -283,7 +313,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
         }
 
         playGameBtn.textContent = 'Play';
-        // playGameBtn.disabled = !this.jobs[jobId].inRange;
+        // playGameBtn.disabled = !this.playerJobsCollection[collectionIdx].inRange;
         playGameBtn.onclick = () => {
             this.presentModal(job, collectionIdx);
             this.map.closePopup();
@@ -299,51 +329,41 @@ export class MapViewComponent implements OnInit, OnDestroy {
         return container;
     }
 
-    onLocationError(event: L.ErrorEvent): void {
+    onLocationError(event) {
         console.error(event.type, event.message);
         setTimeout(() => {
             this.showDeviceLocation();
         }, 500);
     }
 
-    onLocationFound(event: L.LocationEvent): void {
+    onLocationFound(event) {
         console.log(event.type);
         // capture location
         this.userLocation = new L.LatLng(event.latlng.lat, event.latlng.lng);
 
         this.clearCircles();
-        this.addCircle(event.latlng, event.accuracy / 2);
-
+        this.addCircle(event.latlng, 50);
 
         this.checkRangeFromLocations();
     }
 
-    checkRangeFromLocations(): void {
+    checkRangeFromLocations() {
         console.log('checkRangeFromLocations');
-        let jobLatLng: L.LatLng;
         this.playerJobsCollection.forEach((job, idx) => {
-            jobLatLng = new L.LatLng(job.lat, job.lng);
-            const distanceMeters = Math.round(this.userLocation.distanceTo(jobLatLng) * 1e2) / 1e2;
-            console.log('distance to job ' + (idx + 1) + ': ' + distanceMeters + 'm');
-            if (distanceMeters < 100) {
-                console.log('in range of job ' + (idx + 1));
-                job.inRange = true;
-            } else {
-                console.log('not in range of job ' + (idx + 1));
-                job.inRange = false;
-            }
+            let coords = new L.LatLng(job.lat, job.lng);
+            const distanceMeters = Math.round(this.userLocation.distanceTo(coords) * 1e2) / 1e2;
+            job.inRange = distanceMeters <= 50 ? true : false; // user must be within 50m of job location
         });
     }
-
-    handleRoutingError(error: L.Routing.RoutingErrorEvent) {
+    iframeSrc;
+    handleRoutingError(event) {
+        console.error(event);
+        this.iframeSrc = event.error.url;
         this.presentToast('Error finding route', 2000, 'danger');
-        console.log(error.error.message);
-        console.log('ERROR:', error)
     }
 
-    createRouteControl(start: number[], end: number[]): L.Routing.Control {
+    createRouteControl(start, end) {
         return new L.Routing.Control({
-            // pointMarkerStyle: { 'className': 'hideMarker' },
             autoRoute: true,
             waypoints: [
                 L.latLng(start[0], start[1]),
@@ -353,37 +373,41 @@ export class MapViewComponent implements OnInit, OnDestroy {
             lineOptions: {
                 styles: [{ color: 'purple', opacity: 1, weight: 5 }]
             }
-        }).on('routesfound', (e) => {
-            console.log('routesfound');
-            // this.handleRoutingError(error);
         }).on('routingerror', (e) => {
             console.log('routingerror');
             this.handleRoutingError(e);
         }).addTo(this.map);
     }
 
-    removeRouteControl(): void {
+    removeRouteControl() {
         this.map.removeControl(this.currentWaypoint.control);
         this.currentWaypoint = null;
     }
 
-    addCircle(latlng: any, radius: number): void {
+    addCircle(latlng, radius) {
         this.circles.push(L.circle(latlng, radius).addTo(this.map));
     }
 
-    removeCircle(circleId: number): void {
+    removeCircle(circleId) {
         if (this.circles[circleId] != undefined) {
             this.map.removeLayer(this.circles[circleId]);
         };
     }
 
-    clearCircles(): void {
-        this.circles = [];
+    clearCircles() {
+        console.log('clearCircles')
+        if (this.circles) {
+            this.circles.forEach((circle) => {
+                circle.remove();
+            });
+            this.circles = [];
+        }
     }
 
-    destroy(): Promise<void> {
+    destroy() {
         console.log('destroy');
         return new Promise((resolve) => {
+            this.map.stopLocate();
             this.map.remove();
             // clear property once removed - to stem outside destroy calls from parent components
             this.map = null;
@@ -393,7 +417,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
     async ngOnDestroy() {
         console.log('ngOnDestroy');
-        // calls to destroy map may be triggered before ngDestroy - check map first
+        // calls may be triggered before destroy - check map first
         if (this.map) await this.destroy();
     }
 
@@ -402,15 +426,25 @@ export class MapViewComponent implements OnInit, OnDestroy {
             id: this.saveData.currentUser["id"],
             user: this.saveData.currentUser["user"],
             pass: this.saveData.currentUser["pass"],
-            cash: this.saveData.currentUser["cash"],
-            web_cash: this.saveData.currentUser["web_cash"],
-            exp: parseInt(this.saveData.currentUser["exp"], 10),
-            level: parseInt(this.saveData.currentUser["level"], 10),
-            completed: parseInt(this.saveData.currentUser["jobs-completed"], 10),
-            failed: parseInt(this.saveData.currentUser["jobs-failed"], 10),
+            ph_cash: this.saveData.currentUser["cash"],
+            ph_exp: parseInt(this.saveData.currentUser["exp"], 10),
+            ph_total_exp: parseInt(this.saveData.currentUser["total-exp"], 10),
+            ph_level: parseInt(this.saveData.currentUser["level"], 10),
+            ph_completed: parseInt(this.saveData.currentUser["jobs-completed"], 10),
+            ph_failed: parseInt(this.saveData.currentUser["jobs-failed"], 10),
+            lto_equipped: this.account["lto_equipped"],
+            lto_cash: this.saveData.currentUser["webcash"],
+            lto_exp: this.account["lto_exp"],
+            lto_total_exp: this.account["lto_total_exp"],
+            lto_player_level: this.account["lto_player_level"],
+            lto_player_next_level: this.account["lto_player_next_level"],
+            lto_game_level: this.account["lto_game_level"],
+            lto_sfx: this.account["lto_sfx"],
+            lto_music: this.account["lto_music"],
+            lto_difficulty: this.account["lto_difficulty"]
         }
 
-        this._apiService.updateRecord(record).subscribe((record: Record) => {
+        this._apiService.updateRecord(record).subscribe((record) => {
             // update device accounts
             let accountIdx = this.saveData.accounts.findIndex(account => account.id === this.saveData.currentUser.id);
             this.saveData.accounts.splice(accountIdx, 1, this.saveData.currentUser);

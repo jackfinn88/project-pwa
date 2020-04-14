@@ -10,7 +10,7 @@
 </ion-header>
 
 <app-statbar [user]="saveData.currentUser.user" [cash]="saveData.currentUser.cash"
-    [webcash]="saveData.currentUser.web_cash" [exp]="saveData.currentUser.exp">
+    [webcash]="saveData.currentUser.webcash" [exp]="saveData.currentUser.level">
 </app-statbar>
 
 <ion-content class="ion-padding">
@@ -20,14 +20,30 @@
             <p>Increase performance of Plug-ins, no refunds.</p>
         </div>
 
-        <ion-list lines="none">
-            <ion-item *ngFor="let amount of availableAmounts" class="ion-text-center">
-                <ion-button (click)="onTransferItemClick($event)">
-                    <span class="input-currency">{{ amount }}</span>
-                </ion-button>
-            </ion-item>
-        </ion-list>
+        <div *ngFor="let plugin of availablePlugins; index as i" class="upgrade-list-wrapper">
+            <h1>{{ pluginKeys[i] }}</h1>
+            <p>ACTIVE</p>
+            <ion-list class="upgrade-list" lines="none">
+                <ion-item *ngFor="let upgrade of plugin.upgrades, index as j">
+                    <div class="upgrade-description">
+                        <div>
+                            <p class="description-text"></p>
+                        </div>
+                        <div>
+                            <p>Current Level: {{ upgrade.level }}</p>
+                            <p *ngIf="prices[upgrade.level]">Next: £{{ prices[upgrade.level] }}</p>
+                        </div>
+                    </div>
+                    <ion-button slot="end" [disabled]="!prices[upgrade.level]" (click)="purchaseUpgrade(i, j)">
+                        {{ prices[upgrade.level] ? 'BUY' : 'MAX' }}
+                    </ion-button>
+                    <ion-toggle slot="end" [disabled]="!upgrade.level" [(ngModel)]="upgrade.active"
+                        (ionChange)="onToggleChange(i, j)">
+                    </ion-toggle>
+                </ion-item>
+            </ion-list>
+        </div>
     </div>
 
-    <div class="footer">Next Level 2020</div>
+    <div class="footer">2020 (Next Level Games)</div>
 </ion-content>

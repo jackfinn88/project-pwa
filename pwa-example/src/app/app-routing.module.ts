@@ -3,7 +3,6 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { HomeComponent } from './pages/home/home.component';
 import { ViewMapComponent } from './pages/view-map/view-map.component';
-import { DBComponent } from './pages/db/db.component';
 import { JobsComponent } from './pages/jobs/jobs.component';
 import { TransferComponent } from './pages/transfer/transfer.component';
 import { InventoryComponent } from './pages/inventory/inventory.component';
@@ -17,7 +16,6 @@ const routes: Routes = [
     { path: 'transfer', component: TransferComponent },
     { path: 'account', component: AccountComponent },
     { path: 'inventory', component: InventoryComponent },
-    { path: 'db', component: DBComponent },
 
     // otherwise redirect to home
     { path: '**', redirectTo: '' }];

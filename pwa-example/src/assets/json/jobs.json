@@ -1,22 +1,224 @@
 {
-    "jobs": [
+    "characters": [
         {
-            "id": "0",
-            "title": "Wipe Down",
-            "description": "XXXX AND MORE",
-            "difficulty": 1,
-            "game": 1,
-            "exp": 100,
-            "cash": 500
+            "name": "Fester",
+            "unlocksAt": 1,
+            "greetings": [
+                "Hey, it's Fester.",
+                "Hey, it's me.",
+                "Fester here."
+            ],
+            "signoffs": [
+                "Don't screw this up!",
+                "Remember, we don't know each other.",
+                "Alright, talk to you soon."
+            ],
+            "problems": [
+                {
+                    "name": "blitz",
+                    "issue": {
+                        "subjects": [
+                            "Wipe Down",
+                            "Disrupt & Corrupt",
+                            "Clean House"
+                        ],
+                        "messages": [
+                            "There's a big data transfer scheduled to happen soon. It would be beneficial to some associates of mines if the data could somehow disappear, or become unreadable in some way. I need you to get over there and prevent that transfer somehow!",
+                            "So, you like freedom right? You want to keep it right? Okay, well, all you have to do is mess with a little file transfer scheduled to happen soon and nothing has to change. I've attached the location, get it done.",
+                            "Some folks downtown are trying to push through a business deal that would be bad for a few friends of ours, I need you to mess with the bank transfer and make sure the deal doesn't happen. It should be happening soon so get on it!"
+                        ]
+                    }
+                },
+                {
+                    "name": "fallproof",
+                    "issue": {
+                        "subjects": [
+                            "Data Recovery",
+                            "Big Little Issue",
+                            "Reacquisition"
+                        ],
+                        "messages": [
+                            "I have a job for you. I need you to go to the location attached to this message and gain access to the network and recover some files for me. Don't worry what they are, just get them back and you'll be rewarded.",
+                            "A friend of mine needs a favour. One of his goons got caught with some sensitive data on them, it's now currently sitting on the desktop of some idiot in blue, get it back and you'll be handsomely rewarded. I don't care how you do it, just get it done.",
+                            "Hope you're not busy right now, because I need you to get some less than legal documents back from a government server for me. Get in to the system, grab the files, get out, easy. Hurry up too, it's kind of important, like, prison important."
+                        ]
+                    }
+                }
+            ],
+            "cash": {
+                "min": 500,
+                "max": 2000
+            },
+            "exp": {
+                "min": 200,
+                "max": 1000
+            },
+            "colour": "green"
         },
         {
-            "id": "1",
-            "title": "Data Recovery",
-            "description": "XXXX",
-            "difficulty": 2,
-            "game": 2,
-            "exp": 200,
-            "cash": 1000
+            "name": "Unknown",
+            "unlocksAt": 5,
+            "greetings": [
+                "It's me.",
+                "Listen up.",
+                "Alright, here's the deal."
+            ],
+            "signoffs": [
+                "Do not mess this up for me.",
+                "What are you waiting for.",
+                "I haven't got all day."
+            ],
+            "problems": [
+                {
+                    "name": "blitz",
+                    "issue": {
+                        "subjects": [
+                            "Eraser",
+                            "Interference",
+                            "Scrubbed"
+                        ],
+                        "messages": [
+                            "You don't know me, but that's okay, you don't need to. There's an officer in possession of something I really don't need getting out, they're due to send it to their boss soon, I need you to stop that happening. Think you can handle it?",
+                            "I heard you're good with computers, so I have a problem that I need taking care of. I want you to interfer with a file transfer that's happening soon, I've sent the network location with this message, let's see how good you are.",
+                            "Problem. Now. Fix. Money."
+                        ]
+                    }
+                },
+                {
+                    "name": "fallproof",
+                    "issue": {
+                        "subjects": [
+                            "Recovery",
+                            "Deception",
+                            "Espionage"
+                        ],
+                        "messages": [
+                            "Some files have been stolen from me, you're going to get them back. There's a location with this message, do this and you'll be rewarded, fail and my faith in you may dwindle, you don't want that.",
+                            "I need you to get some information from the computer of a dead man, well he's not dead yet, but he will be if those files aren't there like he's saying. It's your lucky day, you may get to save a life.",
+                            "I know we don't know each other but its best for us both if you just do what I say. I need you to sneak into this network and recover some files for me, you'll get paid don't worry."
+                        ]
+                    }
+                }
+            ],
+            "cash": {
+                "min": 1000,
+                "max": 4000
+            },
+            "exp": {
+                "min": 500,
+                "max": 1200
+            },
+            "colour": "gray"
+        },
+        {
+            "name": "Victor",
+            "unlocksAt": 3,
+            "greetings": [
+                "Hello my friend, it's Victor.",
+                "It's Victor, how are you today?",
+                "Hey it's Victor, I need some help."
+            ],
+            "signoffs": [
+                "Please can you help me?",
+                "I really need this done, please my friend.",
+                "Thank you my friend."
+            ],
+            "problems": [
+                {
+                    "name": "blitz",
+                    "issue": {
+                        "subjects": [
+                            "Clear out",
+                            "Disruption",
+                            "Spring Cleaning"
+                        ],
+                        "messages": [
+                            "Someone's out to get me! They're saying they have proof of some things I never done! Honest! I don't know what they have but they're sending it to the papers any minute now! Please is there anything you can do?",
+                            "I have a little problem with a so called journalist in town, they're trying to ruin my reputation because of something I did when I was drunk! I don't even remember doing it! But, maybe you could interfer when they send them to their boss anyway? Better to be safe, eh.",
+                            "I hate this stinking town! You try to do the right thing and they want more! Always more! I'm done paying bribes, I need you to interfer with this file transfer supposedly happening soon, that'll show them."
+                        ]
+                    }
+                },
+                {
+                    "name": "fallproof",
+                    "issue": {
+                        "subjects": [
+                            "In and Out",
+                            "Undetected",
+                            "Sneaky"
+                        ],
+                        "messages": [
+                            "I need you to help get some things back for me. This cop thinks he can just arrest my guys and steal things from me! Unbelievable. I've sent the details, can you get it back for me?",
+                            "So, it's like this, someone disappeared and some fingers got pointed, now I never did nothing, but I know how to prove who did. Can you recover some files for me, I'll make sure you're rewarded.",
+                            "I got something I need you to do, please my friend, it's important to me. There's some business files of a company downtown, I need to get hold of them ASAP. It's not important why, just important it's done."
+                        ]
+                    }
+                }
+            ],
+            "cash": {
+                "min": 1000,
+                "max": 3000
+            },
+            "exp": {
+                "min": 800,
+                "max": 1000
+            },
+            "colour": "goldenrod"
+        },
+        {
+            "name": "Mel",
+            "unlocksAt": 2,
+            "greetings": [
+                "Hey sweet.",
+                "Hey, it's Mel.",
+                "Heya, it's Mel, you ok?"
+            ],
+            "signoffs": [
+                "Thank you sooo much! xx",
+                "Thanks for this, see you soon xx",
+                "Thanks! Take care! xx"
+            ],
+            "problems": [
+                {
+                    "name": "blitz",
+                    "issue": {
+                        "subjects": [
+                            "Get Messy",
+                            "Righting Wrongs",
+                            "Screw That"
+                        ],
+                        "messages": [
+                            "I really need some help with a problem. Someone's stolen my designs and has been selling them online, I think they're receiving a payment for the biggest piece soon, can you mess up the transfer for me? This is so unfair!",
+                            "So I have this issue, some guy hasn't paid for some work I did for him, and now I've found out he's trying to sell everything and run off. If I'm not getting anything, neither is he! Mess up the wire transfer, he has to pay!",
+                            "I need help with a thing. I did some designs for this company, who sent them back, saying they didn't want them. Then I see them using it all over the website! People are spending money on their site right now! Can you mess around with their network, screw up some payments for me?"
+                        ]
+                    }
+                },
+                {
+                    "name": "fallproof",
+                    "issue": {
+                        "subjects": [
+                            "What's Mine",
+                            "Get You Back",
+                            "Lost and Found"
+                        ],
+                        "messages": [
+                            "Can you help me? Someone I know came in today and literally just stole my laptop, it's got all my recent designs on, some of them already paid for. I've sent their address, I don't care about the laptop, I just need those designs back, please help.",
+                            "So, I need a favour. I took a load of reference photos for some work I'm doing, and now an ex friend of mine has came into the shop and taken my camera, and says they won't give it back unless I pay her money! Can you get them back somehow?",
+                            "I need help with this thing. I accidently left my bag at some house in the city after a party. Thing is, it had my laptop in it with some work that I really need back. I know the address but...I kinda got thrown out...I don't care about the laptop, can you just get the designs back?"
+                        ]
+                    }
+                }
+            ],
+            "cash": {
+                "min": 500,
+                "max": 1000
+            },
+            "exp": {
+                "min": 500,
+                "max": 800
+            },
+            "colour": "purple"
         }
     ]
 }

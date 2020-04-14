@@ -13,17 +13,17 @@ export class StatbarComponent implements OnInit {
         this.player["cash"] = value;
     }
     @Input() set webcash(value) {
-        this.player["web_cash"] = value;
+        this.player["webcash"] = value;
     }
-    @Input() set exp(value) {
-        this.player["exp"] = value;
+    @Input() set level(value) {
+        this.player["level"] = value;
     }
 
     player = {
         'user': '',
         'cash': 0,
-        'web_cash': 0,
-        'exp': 0
+        'webcash': 0,
+        'level': 0
     };
 
     constructor() { }

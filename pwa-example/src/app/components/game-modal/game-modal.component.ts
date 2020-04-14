@@ -1,11 +1,10 @@
 import { Component, Input, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { ModalController, Platform } from '@ionic/angular';
 import { GameScene } from 'src/app/components/game/game-scene';
-import { WelcomeScene } from 'src/app/components/game/welcome-scene';
-import { ScoreScene } from 'src/app/components/game/score-scene';
-import { StarfallGame } from '../game/game.component';
+import { BlitzGame } from '../game/game.component';
 import { ScreenOrientation } from '@ionic-native/screen-orientation/ngx';
 import { BehaviorSubject } from 'rxjs';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
     templateUrl: 'game-modal.component.html',
@@ -14,12 +13,26 @@ import { BehaviorSubject } from 'rxjs';
 export class GameModalComponent implements OnInit, OnDestroy {
     @HostListener('window:message', ['$event'])
     onMessage(event) {
+        let data = JSON.parse(event.data);
+        if (data.rotate) {
+            console.log('ROTATION');
+            this.onFallproofRotate();
+        } else if (data.win) {
+            console.log('WIN');
+            this.onGameWin();
+        }
+        /*
         if (event.origin !== "https://jlf40.brighton.domains") {
             return false;
         } else {
-            console.log('Message:', event.data);
-            this.onGameWin(event);
+            let data = JSON.parse(event.data);
+            if (data.rotate) {
+                this.onFallproofRotate();
+            } else if (data.win) {
+                this.onGameWin();
+            }
         }
+        */
     }
     @Input() job: any;
     @Input() collectionId: any;
@@ -28,7 +41,7 @@ export class GameModalComponent implements OnInit, OnDestroy {
     gameType;
     fullScreenKey;
     config = {
-        title: "Starfall",
+        title: "Blitz",
         scale: {
             mode: Phaser.Scale.FIT,
             parent: 'game',
@@ -36,7 +49,7 @@ export class GameModalComponent implements OnInit, OnDestroy {
             width: 800,
             height: 600
         },
-        scene: [GameScene, WelcomeScene, ScoreScene],
+        scene: [GameScene],
         physics: {
             default: "arcade",
             arcade: {
@@ -49,32 +62,27 @@ export class GameModalComponent implements OnInit, OnDestroy {
     uiData;
     canvas;
     math = Math;
-    // 
     showGame = false;
     showScore = false;
     showAnim = false;
     showFade = false;
     showFadeEnd = false;
-
-    // 
     timer;
     timerText;
     timerProgress;
     feedback = {};
-
     gameEndText;
+    rotations;
+    iframeSrc: SafeResourceUrl = 'https://jlf40.brighton.domains/dump/angular/test/api/fallproof/index.html'; // tbd: update or correct for final
+    gameOver = false;
 
-    // console animation
-    runAnim = false;
-    textarea;
-    speed = 100; //Writing speed in milliseconds
-    text = 'start ';
-    i = 0;
 
-    constructor(private screenOrientation: ScreenOrientation,
+    constructor(
+        private screenOrientation: ScreenOrientation,
         private platform: Platform,
         private modalCtrl: ModalController,
-        private _cdr: ChangeDetectorRef) { }
+        private _cdr: ChangeDetectorRef
+    ) { }
 
     ngOnInit() {
         this.subject.next({ 'game-started': false, 'game-won': false, 'collectionId': this.collectionId });
@@ -85,56 +93,67 @@ export class GameModalComponent implements OnInit, OnDestroy {
         }
 
         // get game type
-        if (this.job.game === 1) {
-            // starfall
-            // tbd: use difficulty setting
-            let maxFilesNeeded = 40; // 40
-            let minFilesNeeded = 20; // 20
-            let maxCompleteNeeded = 15;
-            let minCompleteNeeded = 10;
-
-            this.gameType = 'starfall';
-            this.text += (this.gameType + '.exe');
+        if (this.job.gameIdx === 1) {
+            // blitz
             this.uiData = {
                 'caught': 0,
                 'caughtProgress': 0,
                 'lost': 0,
                 'lostProgress': 0,
-                'corrupt': ((Math.floor(Math.random() * (maxFilesNeeded - minFilesNeeded + 1)) + minFilesNeeded) * 64) / 1000,
-                'complete': ((Math.floor(Math.random() * (maxCompleteNeeded - minCompleteNeeded + 1)) + minCompleteNeeded) * 64) / 1000
+                'corrupt': 0,
+                'complete': 0
             };
-        } else if (this.job.game === 2) {
-            // knightfall
-            this.gameType = 'knightfall';
+            this.gameType = 'blitz';
             this.text += (this.gameType + '.exe');
-            this.uiData = {};
+        } else if (this.job.gameIdx === 2) {
+            // fallproof
+            this.gameType = 'fallproof';
+            this.text += (this.gameType + '.exe');
         }
 
+        // get request key
         this.fullScreenKey = this.getRequestFullScreenKey();
     }
 
-    setUIStyle() {
-        this.canvas = this.findCanvas();
-        if (this.canvas) {
-            let ui = document.querySelector('.ui-overlay') as HTMLElement;
-            let margin = window.getComputedStyle(this.canvas).marginLeft;
-            ui.style.width = margin;
-            ui.style.visibility = 'visible';
-        } else {
-            requestAnimationFrame(() => {
-                this.setUIStyle();
-            })
+    // tbd: remove this
+    onTestButtonClick() {
+        this.onGameWin();
+        setTimeout(() => {
+            this.game = null;
+        }, 2000);
+    }
+
+    onPlayButtonClick() {
+        // move to fullscreen for maximum real estate
+        this.enterFullScreen();
+
+        // lock orientations
+        if (this.job.gameIdx === 1) {
+            // blitz
+            this.lockOrientation(this.screenOrientation.ORIENTATIONS.LANDSCAPE);
+        } else if (this.job.gameIdx === 2) {
+            // fallproof
+            this.lockOrientation(this.screenOrientation.ORIENTATIONS.PORTRAIT);
         }
+
+        // begin starting animation
+        requestAnimationFrame(() => {
+            this.startAnimation();
+        })
     }
 
-    findCanvas() {
-        return document.querySelector('#game').querySelector('canvas');
+    // close modal when done is clicked
+    onDoneButtonClick() {
+        this.closeModal();
     }
 
-    onGameWin(gameEvent) {
-        console.log('onGameWin', gameEvent);
+    onGameWin() {
+        // update map-view subject so they know what happened immediately
         this.subject.next({ 'game-started': true, 'game-won': true, 'collectionId': this.collectionId });
+
+        // clear fallproof timer if running
         if (this.timer) clearInterval(this.timer);
+
         // show score/hide game
         this.gameEndText = 'SUCCESS';
         this.feedback['header'] = 'Well done!';
@@ -155,9 +174,10 @@ export class GameModalComponent implements OnInit, OnDestroy {
         }, 3000);
     }
 
-    onGameLose(gameEvent) {
-        console.log('onGameLose', gameEvent);
+    onGameLose() {
+        // update map-view subject so they know what happened immediately
         this.subject.next({ 'game-started': true, 'game-won': false, 'collectionId': this.collectionId });
+
         if (this.timer) clearInterval(this.timer);
         // show score/hide game
         this.gameEndText = 'FAILED';
@@ -179,47 +199,68 @@ export class GameModalComponent implements OnInit, OnDestroy {
         }, 3000);
     }
 
-    // tbd: remove this
-    onTestButtonClick() {
-        this.onGameWin(null);
-    }
+    // setup game and begin
+    startBlitz() {
+        this.game = new BlitzGame(this.config);
 
-    onPlayButtonClick() {
-        if (this.job.game === 1) {
-            this.enterFullScreen();
-        } else if (this.job.game === 2) {
-            this.startAnimation();
-        }
-        /*this.showGame = true;
+        // initial data
+        let maxFilesNeeded = 40;
+        let minFilesNeeded = 20;
+        let maxCompleteNeeded = 15;
+        let minCompleteNeeded = 10;
 
-        requestAnimationFrame(() => {
-            if (this.job.game === 1) {
-                this.startStarfall();
-            } else if (this.job.game === 2) {
-                this.startKnightfall();
+        let dataDmgValues = [32, 64, 128, 256];
+
+        let corrupt = ((Math.floor(Math.random() * (maxFilesNeeded - minFilesNeeded + 1)) + minFilesNeeded) * 64) / 1000;
+        let complete = ((Math.floor(Math.random() * (maxCompleteNeeded - minCompleteNeeded + 1)) + minCompleteNeeded) * 64) / 1000;
+
+        // get amount to add to progress when data packet is destroyed
+        let upgrade01Level = parseInt(this.player["game-data"].blitz.upgrades["0"].level, 10);
+        let corruptValue = parseInt(this.player["game-data"].blitz.upgrades["0"].active, 10) ? dataDmgValues[upgrade01Level] : dataDmgValues[0];
+
+        // get data packet velocity
+        let upgrade02Level = parseInt(this.player["game-data"].blitz.upgrades["1"].level, 10);
+        let speedBaseValue = 400;
+        let speed = speedBaseValue - (parseInt(this.player["game-data"].blitz.upgrades["1"].active, 10) ? upgrade02Level * 100 : 0);
+
+        console.log({
+            "data-per-hit": {
+                "level": upgrade01Level,
+                "active": this.player["game-data"].blitz.upgrades["0"].active,
+                "value": corruptValue,
+                "default": dataDmgValues[0]
+            },
+            "packet-velocity": {
+                "level": upgrade02Level,
+                "active": this.player["game-data"].blitz.upgrades["1"].active,
+                "value": speed,
+                "default": speedBaseValue
             }
-        });*/
-    }
+        });
 
-    onDoneButtonClick() {
-        this.closeModal();
-    }
-
-    startStarfall() {
-        this.game = new StarfallGame(this.config);
         this.game.options = {
-            'catch': (this.uiData.corrupt / 64) * 1000,
-            'lose': (this.uiData.complete / 64) * 1000
+            'catch': (corrupt / corruptValue) * 1000,
+            'lose': (complete / 64) * 1000,
+            'fileVelocity': speed
         }
+
+        this.uiData = {
+            'caught': 0,
+            'caughtProgress': 0,
+            'lost': 0,
+            'lostProgress': 0,
+            'corrupt': corrupt,
+            'complete': complete
+        };
 
         // subscribe to game-events
         let events = this.game.events;
         events.on('game-event', (event) => {
             if (event.end) {
                 if (event.stats.win) {
-                    this.onGameWin(event);
+                    this.onGameWin();
                 } else {
-                    this.onGameLose(event);
+                    this.onGameLose();
                 }
             } else {
                 this.updateUI(event);
@@ -232,57 +273,142 @@ export class GameModalComponent implements OnInit, OnDestroy {
         });
     }
 
-    startKnightfall() {
+    // setup game and begin - fallproof is controlled by timer
+    startFallproof() {
+        // get ui element to update
         let ui = document.querySelector('.ui-overlay') as HTMLElement;
         ui.style.visibility = 'visible';
-        let interval = 100;
-        let seconds = 60;
+
+        // get time allowed for game
+        let upgrade01Level = parseInt(this.player["game-data"].fallproof.upgrades["0"].level, 10);
+        let timeIncrementValue = 10;
+        let baseTime = 30;
+
+        // setup time allowed from upgrades
+        let interval = 100; // modify duration at 1/10s for speedy ui timer
+        let seconds = baseTime + (parseInt(this.player["game-data"].fallproof.upgrades["0"].active, 10) ? upgrade01Level * timeIncrementValue : 0);
         let duration = seconds * 1000;
+
+        // instantiate ui timer binding
         this.timerText = (duration / 1000).toFixed(1);
         this.timerProgress = this.normalise(duration / 1000, seconds);
+
+        // get rotations allowed for game
+        let upgrade02Level = parseInt(this.player["game-data"].fallproof.upgrades["1"].level, 10);
+        let rotationIncrementValue = 4;
+        let baseRotations = 8;
+        this.rotations = baseRotations + (parseInt(this.player["game-data"].fallproof.upgrades["1"].active, 10) ? upgrade02Level * rotationIncrementValue : 0);
+
+        console.log({
+            "extra-time": {
+                "level": upgrade01Level,
+                "active": this.player["game-data"].fallproof.upgrades["0"].active,
+                "value": duration,
+                "default": baseTime
+            },
+            "extra-rotations": {
+                "level": upgrade02Level,
+                "active": this.player["game-data"].fallproof.upgrades["1"].active,
+                "value": this.rotations,
+                "default": baseRotations
+            }
+        });
+
+        // update iframe src - game will pick up rotations from href
+        this.iframeSrc = this.iframeSrc + '?rotations=' + this.rotations;
+
+        // start timer
         this.timer = setInterval(() => {
             if (duration <= 0) {
-                this.onGameLose(null);
+                // end game at 0
+                this.onGameLose();
                 return;
             }
+            // update ui
             duration -= interval;
             this.timerText = (duration / 1000).toFixed(1);
             this.timerProgress = this.normalise(duration / 1000, seconds);
         }, interval);
     }
 
-    updateUI(gameEvent) {
-        console.log('updateUI', gameEvent);
+    // decrement rotations for ui data binding
+    onFallproofRotate() {
+        this.rotations--;
+    }
 
-        if (this.job.game < 2) {
-            // starfall
+    findCanvas() {
+        return document.querySelector('#game').querySelector('canvas');
+    }
+
+    setUIStyle() {
+        this.canvas = this.findCanvas();
+        if (this.canvas) {
+            let ui = document.querySelector('.ui-overlay') as HTMLElement;
+            let margin = window.getComputedStyle(this.canvas).marginLeft;
+            ui.style.width = margin;
+            ui.style.visibility = 'visible';
+        } else {
+            requestAnimationFrame(() => {
+                this.setUIStyle();
+            })
+        }
+    }
+
+    // update data shown to user
+    updateUI(gameEvent) {
+        if (this.job.gameIdx === 1) {
+            // blitz
             this.uiData.caught = gameEvent.stats.caught;
             this.uiData.caughtProgress = this.normalise(gameEvent.stats.caught, this.game.options.catch);
             this.uiData.lost = gameEvent.stats.lost;
             this.uiData.lostProgress = this.normalise(gameEvent.stats.lost, this.game.options.lose);
-        } else {
-            // knightfall
+        } else if (this.job.gameIdx === 2) {
+            // fallproof
+            this.uiData.rotations = gameEvent.rotations;
         }
 
         this._cdr.detectChanges();
     }
 
+    getRequestFullScreenKey() {
+        let go = 'requestFullscreen';
+        let leave = 'exitFullscreen';
+        if ('mozRequestFullScreen' in document.documentElement) {
+            go = 'mozRequestFullScreen';
+            leave = 'mozCancelFullScreen';
+        } else if ('webkitRequestFullscreen' in document.documentElement) {
+            go = 'webkitRequestFullscreen';
+            leave = 'webkitExitFullscreen';
+        } else if ('msRequestFullscreen' in document.documentElement) {
+            go = 'msRequestFullscreen';
+            leave = 'msExitFullscreen';
+        }
+        return { request: go, exit: leave };
+    }
+
+    // request fullscreen mode to lock screen orientation
+    enterFullScreen() {
+        document.documentElement[this.fullScreenKey.request]();
+    }
+
+    // get exit fn and evaluate (tbd: check for alternative)
+    exitFullEcreen() {
+        let exitFullScreen = 'document.' + this.fullScreenKey.exit + '()';
+        eval(exitFullScreen);
+    }
+
+    // lock screen to given orientation
+    lockOrientation(orientation) {
+        this.screenOrientation.lock(orientation);
+    }
+
+    // return % as 0-1 value
     normalise(partialValue, totalValue) {
         return ((100 * partialValue) / totalValue) / 100;
     }
 
-    enterFullScreen() {
-        // request fullscreen mode to lock screen
-        document.documentElement[this.fullScreenKey.request]();
-        this.screenOrientation.lock(this.screenOrientation.ORIENTATIONS.LANDSCAPE);
-
-        requestAnimationFrame(() => {
-            this.startAnimation();
-        });
-    }
-
+    // ensure canvas fits screen and maintains aspect ratio
     resize() {
-        console.log('resize');
         let canvas = document.querySelector("canvas");
         let windowWidth = window.innerWidth;
         let windowHeight = window.innerHeight;
@@ -299,63 +425,50 @@ export class GameModalComponent implements OnInit, OnDestroy {
         }
     }
 
+    // close this modal component
     async closeModal() {
-        // closing by html button doesn't trigger autoclose overlay service
+        // closing by header button doesn't trigger autoclose overlay service
         // manually navigate from fake history
         history.back();
         await this.modalCtrl.dismiss();
     }
 
-    private getRequestFullScreenKey() {
-        let go = 'requestFullscreen';
-        let leave = 'exitFullscreen';
-        if ('mozRequestFullScreen' in document.documentElement) {
-            go = 'mozRequestFullScreen';
-            leave = 'mozCancelFullScreen';
-        } else if ('webkitRequestFullscreen' in document.documentElement) {
-            go = 'webkitRequestFullscreen';
-            leave = 'webkitExitFullscreen';
-        } else if ('msRequestFullscreen' in document.documentElement) {
-            go = 'msRequestFullscreen';
-            leave = 'msExitFullscreen';
-        }
-        return { request: go, exit: leave };
-    }
-
     ngOnDestroy() {
-        if (this.showGame || this.showScore) {
-            console.log('job started remove it');
-            // send data back
-        }
-
         requestAnimationFrame(() => {
-
-            if (this.job.game === 1) {
+            // remove listeners and destroy game
+            if (this.job.gameIdx === 1) {
                 window.removeEventListener("resize", this.resize);
                 if (this.game) this.game.destroy(true);
-                this.screenOrientation.lock(this.screenOrientation.ORIENTATIONS.PORTRAIT);
-                let exitFullScreen = 'document.' + this.fullScreenKey.exit + '()';
-                eval(exitFullScreen);
-
-                setTimeout(() => {
-                    this.screenOrientation.unlock();
-                }, 1000);
             }
 
+            // force portrait and exit fullscreen
+            this.lockOrientation(this.screenOrientation.ORIENTATIONS.PORTRAIT);
+            this.exitFullEcreen();
+
+            // give user time to rotate device back to portrait
+            setTimeout(() => {
+                this.screenOrientation.unlock();
+            }, 2000);
         });
     }
 
     // console animation
+    runAnim = false;
+    textarea;
+    speed = 100; // typing speed (ms)
+    text = 'start ';
+    i = 0;
+    count = 0;
+    time = 1;
+
     startAnimation() {
         this.showAnim = true;
         setTimeout(() => {
-            console.log('startAnimation')
             this.textarea = document.querySelector('.load');
             this.runAnim = true;
             this.runner();
         }, 1000);
     }
-
 
     runner() {
         this.textarea.append(this.text.charAt(this.i));
@@ -371,8 +484,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         }, Math.floor(Math.random() * 220) + 50);
     }
 
-    count = 0;
-    time = 1;
     feedbacker() {
         this.textarea.insertAdjacentHTML('beforeend', "[    " + this.count / 1000 + "] " + this.output[this.i] + "<br>");
         if (this.time % 2 == 0) {
@@ -397,23 +508,21 @@ export class GameModalComponent implements OnInit, OnDestroy {
                 if (this.i < this.output.length - 1) {
                     this.feedbacker();
                 } else {
-                    // animation end
-                    console.log('animation end');
                     this.runAnim = false;
                     this.subject.next({ 'game-started': true, 'game-won': false, 'collectionId': this.collectionId });
                     setTimeout(() => {
-                        this.showGame = true;
                         requestAnimationFrame(() => {
-                            if (this.job.game === 1) {
-                                // tbd: apply resize
+                            if (this.job.gameIdx === 1) {
+                                // apply resize listener
                                 this.platform.ready().then(() => {
                                     window.addEventListener("resize", this.resize);
                                 });
-                                this.startStarfall();
-                            } else if (this.job.game === 2) {
-                                this.startKnightfall();
+                                this.startBlitz();
+                            } else if (this.job.gameIdx === 2) {
+                                this.startFallproof();
                             }
                         });
+                        this.showGame = true;
                     }, 1000);
                 }
             }
@@ -443,16 +552,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "NX (Execute Disable) protection: active",
         "efi: EFI v2.31 by American Megatrends",
         "efi:  ACPI=0xca852000  ACPI 2.0=0xca852000  SMBIOS=0xca100398 ",
-        "efi: mem00: [Conventional Memory|   |  |  |  |   |WB|WT|WC|UC] range=[0x0000000000000000-0x000000000005f000) (0MB)",
-        "efi: mem01: [Boot Data          |   |  |  |  |   |WB|WT|WC|UC] range=[0x000000000005f000-0x0000000000060000) (0MB)",
-        "efi: mem02: [Conventional Memory|   |  |  |  |   |WB|WT|WC|UC] range=[0x0000000000060000-0x000000000009e000) (0MB)",
-        "efi: mem03: [Reserved           |   |  |  |  |   |WB|WT|WC|UC] range=[0x000000000009e000-0x00000000000a0000) (0MB)",
-        "efi: mem07: [Reserved           |   |  |  |  |   |WB|WT|WC|UC] range=[0x0000000020000000-0x0000000020200000) (2MB)",
-        "efi: mem08: [Conventional Memory|   |  |  |  |   |WB|WT|WC|UC] range=[0x0000000020200000-0x00000000357f2000) (341MB)",
-        "efi: mem11: [Reserved           |   |  |  |  |   |WB|WT|WC|UC] range=[0x0000000040004000-0x0000000040005000) (0MB)",
-        "efi: mem12: [Conventional Memory|   |  |  |  |   |WB|WT|WC|UC] range=[0x0000000040005000-0x0000000095d21000) (1373MB)",
-        "efi: mem13: [Loader Data        |   |  |  |  |   |WB|WT|WC|UC] range=[0x0000000095d21000-0x00000000c7e11000) (800MB)",
-        "efi: mem14: [Loader Code        |   |  |  |  |   |WB|WT|WC|UC] range=[0x00000000c7e11000-0x00000000c7f34000) (1MB)",
         "SMBIOS 2.7 present.",
         "DMI: ASUSTeK COMPUTER INC. N56VZ/N56VZ, BIOS N56VZ.217 05/22/2013",
         "e820: update [mem 0x00000000-0x00000fff] usable ==> reserved",
@@ -478,26 +577,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "reg 3, base: 3584MB, range: 512MB, type UC",
         "reg 4, base: 3328MB, range: 256MB, type UC",
         "total RAM covered: 16302M",
-        " gran_size: 1M 	chunk_size: 1M 	num_reg: 10  	lose cover RAM: 242M",
-        " gran_size: 1M 	chunk_size: 2M 	num_reg: 10  	lose cover RAM: 242M",
-        "*BAD*gran_size: 1M 	chunk_size: 16M 	num_reg: 10  	lose cover RAM: -12M",
-        "*BAD*gran_size: 1M 	chunk_size: 32M 	num_reg: 10  	lose cover RAM: -12M",
-        " gran_size: 2M 	chunk_size: 2M 	num_reg: 10  	lose cover RAM: 242M",
-        " gran_size: 2M 	chunk_size: 4M 	num_reg: 10  	lose cover RAM: 242M",
-        "*BAD*gran_size: 2M 	chunk_size: 16M 	num_reg: 10  	lose cover RAM: -12M",
-        "*BAD*gran_size: 2M 	chunk_size: 32M 	num_reg: 10  	lose cover RAM: -12M",
-        " gran_size: 4M 	chunk_size: 4M 	num_reg: 10  	lose cover RAM: 242M",
-        " gran_size: 4M 	chunk_size: 8M 	num_reg: 10  	lose cover RAM: 50M",
-        " gran_size: 4M 	chunk_size: 16M 	num_reg: 10  	lose cover RAM: 50M",
-        " gran_size: 4M 	chunk_size: 32M 	num_reg: 10  	lose cover RAM: 2M",
-        "*BAD*gran_size: 4M 	chunk_size: 512M 	num_reg: 10  	lose cover RAM: -254M",
-        " gran_size: 4M 	chunk_size: 1G 	num_reg: 10  	lose cover RAM: 2M",
-        "*BAD*gran_size: 4M 	chunk_size: 2G 	num_reg: 10  	lose cover RAM: -1022M",
-        " gran_size: 8M 	chunk_size: 8M 	num_reg: 10  	lose cover RAM: 118M",
-        " gran_size: 8M 	chunk_size: 16M 	num_reg: 10  	lose cover RAM: 54M",
-        " gran_size: 8M 	chunk_size: 32M 	num_reg: 10  	lose cover RAM: 6M",
-        "*BAD*gran_size: 8M 	chunk_size: 512M 	num_reg: 10  	lose cover RAM: -250M",
-        " gran_size: 2G 	chunk_size: 2G 	num_reg: 3  	lose cover RAM: 1966M",
         "mtrr_cleanup: can not find optimal value",
         "please specify mtrr_gran_size/mtrr_chunk_size",
         "e820: update [mem 0xcbc00000-0xffffffff] usable ==> reserved",
@@ -532,16 +611,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "RAMDISK: [mem 0x357f2000-0x36bf0fff]",
         "ACPI: Early table checksum verification disabled",
         "ACPI: RSDP 0x00000000CA852000 000024 (v02 _ASUS_)",
-        "ACPI: XSDT 0x00000000CA852080 000084 (v01 _ASUS_ Notebook 01072009 AMI  00010013)",
-        "ACPI: FACP 0x00000000CA865DF0 00010C (v05 _ASUS_ Notebook 01072009 AMI  00010013)",
-        "ACPI: DSDT 0x00000000CA852190 013C5A (v02 _ASUS_ Notebook 00000013 INTL 20091112)",
-        "ACPI: FACS 0x00000000CA87F080 000040",
-        "ACPI: APIC 0x00000000CA865F00 000092 (v03 _ASUS_ Notebook 01072009 AMI  00010013)",
-        "ACPI: Local APIC address 0xfee00000",
-        "No NUMA configuration found",
-        "Faking a node at [mem 0x0000000000000000-0x000000042f1fffff]",
-        "NODE_DATA(0) allocated [mem 0x42f1e6000-0x42f1eafff]",
-        " [ffffea0000000000-ffffea0010bfffff] PMD -> [ffff88041e800000-ffff88042e7fffff] on node 0",
         "Zone ranges:",
         "  DMA      [mem 0x00001000-0x00ffffff]",
         "  DMA32    [mem 0x01000000-0xffffffff]",
@@ -595,14 +664,11 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "pcpu-alloc: [0] 0 1 2 3 4 5 6 7 ",
         "Built 1 zonelists in Node order, mobility grouping on.  Total pages: 4099911",
         "Policy zone: Normal",
-        "Kernel command line: BOOT_IMAGE=/vmlinuz-3.19.0-21-generic.efi.signed root=UUID=14ac372e-6980-4fe8-b247-fae92d54b0c5 ro quiet splash acpi_enforce_resources=lax intel_pstate=enable rcutree.rcu_idle_gp_delay=1 nouveau.runpm=0 vt.handoff=7",
-        "PID hash table entries: 4096 (order: 3, 32768 bytes)",
         "xsave: enabled xstate_bv 0x7, cntxt size 0x340 using standard form",
         "AGP: Checking aperture...",
         "AGP: No AGP bridge found",
         "Calgary: detecting Calgary via BIOS EBDA area",
         "Calgary: Unable to locate Rio Grande table in EBDA - bailing!",
-        "Memory: 16270208K/16660060K available (8000K kernel code, 1232K rwdata, 3752K rodata, 1408K init, 1300K bss, 389852K reserved, 0K cma-reserved)",
         "SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=8, Nodes=1",
         "Hierarchical RCU implementation.",
         "	RCU dyntick-idle grace-period acceleration is enabled.",
@@ -617,7 +683,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "hpet clockevent registered",
         "tsc: Fast TSC calibration using PIT",
         "tsc: Detected 2394.543 MHz processor",
-        "Calibrating delay loop (skipped), value calculated using timer frequency.. 4789.08 BogoMIPS (lpj=9578172)",
         "pid_max: default: 32768 minimum: 301",
         "ACPI: Core revision 20141107",
         "ACPI: All ACPI Tables successfully acquired",
@@ -649,9 +714,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "Ignoring BGRT: invalid status 0 (expected 1)",
         "ftrace: allocating 30086 entries in 118 pages",
         "..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1",
-        "smpboot: CPU0: Intel(R) Core(TM) i7-3630QM CPU @ 2.40GHz (fam: 06, model: 3a, stepping: 09)",
-        "TSC deadline timer enabled",
-        "Performance Events: PEBS fmt1+, 16-deep LBR, IvyBridge events, full-width counters, Intel PMU driver.",
         "... version:                3",
         "... bit width:              48",
         "... generic registers:      4",
@@ -686,7 +748,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "ACPI FADT declares the system doesn't support PCIe ASPM, so disable it",
         "ACPI: bus type PCI registered",
         "acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5",
-        "PCI: MMCONFIG for domain 0000 [bus 00-3f] at [mem 0xf8000000-0xfbffffff] (base 0xf8000000)",
         "PCI: MMCONFIG at [mem 0xf8000000-0xfbffffff] reserved in E820",
         "PCI: Using configuration type 1 for base access",
         "ACPI: Added _OSI(Module Device)",
@@ -703,11 +764,8 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "ACPI: Dynamic OEM Table Load:",
         "ACPI: SSDT 0xFFFF88041C7DB200 000119 (v01 PmRef  ApCst    00003000 INTL 20051117)",
         "ACPI: Interpreter enabled",
-        "ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_] (20141107/hwxface-580)",
-        "ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S2_] (20141107/hwxface-580)",
         "ACPI: (supports S0 S3 S4 S5)",
         "ACPI: Using IOAPIC for interrupt routing",
-        "PCI: Using host bridge windows from ACPI; if necessary, use \"pci=nocrs\" and report a bug",
         "ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-3e])",
         "acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]",
         "acpi PNP0A08:00: _OSC: platform does not support [PCIeHotplug PME]",
@@ -769,12 +827,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "input: Asus WMI hotkeys as /devices/platform/asus-nb-wmi/input/input12",
         "uvcvideo: Found UVC 1.00 device ASUS USB2.0 Webcam (1bcf:2883)",
         "Adding 16760828k swap on /dev/sda5.  Priority:-1 extents:1 across:16760828k SSFS",
-        "ACPI: Video Device [PEGP] (multi-head: yes  rom: yes  post: no)",
-        "input: Video Bus as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:02/LNXVIDEO:00/input/input13",
-        "ACPI: Video Device [GFX0] (multi-head: yes  rom: no  post: no)",
-        "input: Video Bus as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/LNXVIDEO:01/input/input14",
-        "[drm] Initialized i915 1.6.0 20141121 for 0000:00:02.0 on minor 0",
-        "input: ASUS USB2.0 Webcam as /devices/pci0000:00/0000:00:1a.0/usb3/3-1/3-1.3/3-1.3:1.0/input/input15",
         "usbcore: registered new interface driver uvcvideo",
         "USB Video Class driver (1.1.1)",
         "sound hdaudioC0D0: autoconfig: line_outs=2 (0x14/0x16/0x0/0x0/0x0) type:speaker",
@@ -796,16 +848,13 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "systemd-journald[346]: Received request to flush runtime journal from PID 1",
         "EXT4-fs (sda2): mounted filesystem with ordered data mode. Opts: (null)",
         "EXT4-fs (sda7): mounted filesystem with ordered data mode. Opts: (null)",
-        "audit: type=1400 audit(1436478108.432:2): apparmor=\"STATUS\" operation=\"profile_load\" profile=\"unconfined\" name=\"/usr/lib/lightdm/lightdm-guest-session\" pid=728 comm=\"apparmor_parser\"",
         "bbswitch: version 0.7",
         "bbswitch: Found integrated VGA device 0000:00:02.0: \_SB_.PCI0.GFX0",
         "bbswitch: Found discrete VGA device 0000:01:00.0: \_SB_.PCI0.PEG0.PEGP",
-        "ACPI Warning: \_SB_.PCI0.PEG0.PEGP._DSM: Argument #4 type mismatch - Found [Buffer], ACPI requires [Package] (20141107/nsarguments-95)",
         "bbswitch: detected an Optimus _DSM function",
         "pci 0000:01:00.0: enabling device (0000 -> 0003)",
         "bbswitch: Succesfully loaded. Discrete card 0000:01:00.0 is on",
         "bbswitch: disabling discrete graphics",
-        "ACPI Warning: \_SB_.PCI0.PEG0.PEGP._DSM: Argument #4 type mismatch - Found [Buffer], ACPI requires [Package] (20141107/nsarguments-95)",
         "Bluetooth: BNEP (Ethernet Emulation) ver 1.3",
         "Bluetooth: BNEP filters: protocol multicast",
         "Bluetooth: RFCOMM ver 1.11",

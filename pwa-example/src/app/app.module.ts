@@ -11,7 +11,6 @@ import { IonicModule } from '@ionic/angular';
 import { MapViewComponent } from './components/map-view/map-view.component';
 import { ScreenOrientation } from '@ionic-native/screen-orientation/ngx';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { DBComponent } from './pages/db/db.component';
 import { JobsComponent } from './pages/jobs/jobs.component';
 import { JobModalComponent } from './components/job-modal/job-modal.component';
 import { JobsService } from './providers/job-service';
@@ -25,6 +24,7 @@ import { MyHttpInterceptor } from './providers/http-interceptor';
 import { AccountComponent } from './pages/account/account.component';
 import { InventoryComponent } from './pages/inventory/inventory.component';
 import { StatbarComponent } from './components/statbar/statbar.component';
+import { SafePipe } from './pipes/safe-url';
 
 @NgModule({
     declarations: [
@@ -32,7 +32,6 @@ import { StatbarComponent } from './components/statbar/statbar.component';
         HomeComponent,
         ViewMapComponent,
         MapViewComponent,
-        DBComponent,
         TransferComponent,
         JobsComponent,
         JobModalComponent,
@@ -41,7 +40,8 @@ import { StatbarComponent } from './components/statbar/statbar.component';
         LoginComponent,
         AccountComponent,
         InventoryComponent,
-        StatbarComponent
+        StatbarComponent,
+        SafePipe
     ],
     imports: [
         BrowserModule,

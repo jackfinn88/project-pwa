@@ -4,6 +4,7 @@ export class GameScene extends Phaser.Scene {
     lastFileTime: number;
     filesCaught: number;
     filesFallen: number;
+    fileVelocity: number;
     ground: Phaser.Physics.Arcade.StaticGroup;
 
     filesNeeded: number;
@@ -26,6 +27,7 @@ export class GameScene extends Phaser.Scene {
         this.filesFallen = 0;
         this.filesNeeded = options.catch;
         this.maxFilesFallen = options.lose;
+        this.fileVelocity = options.fileVelocity;
     }
 
     preload(): void {
@@ -59,6 +61,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     private onClick(file: Phaser.Physics.Arcade.Image) {
+        if (this.gameOver) return;
+
         file.setTint(0x00ff00);
         file.setVelocity(0, 0);
         this.filesCaught += 1;
@@ -73,9 +77,9 @@ export class GameScene extends Phaser.Scene {
         });
 
         this.time.delayedCall(100, (file) => {
-            if (!this.gameOver) {
-                file.destroy();
-                if (this.filesCaught >= this.filesNeeded) {
+            file.destroy();
+            if (this.filesCaught >= this.filesNeeded) {
+                if (!this.gameOver) {
                     this.gameWin();
                 }
             }
@@ -84,6 +88,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     private onFall(file: Phaser.Physics.Arcade.Image) {
+        if (this.gameOver) return;
+
         file.setTint(0xff0000);
         this.filesFallen += 1;
 
@@ -97,9 +103,9 @@ export class GameScene extends Phaser.Scene {
         });
 
         this.time.delayedCall(100, (file) => {
-            if (!this.gameOver) {
-                file.destroy();
-                if (this.filesFallen >= this.maxFilesFallen) {
+            file.destroy();
+            if (this.filesFallen >= this.maxFilesFallen) {
+                if (!this.gameOver) {
                     this.gameLose();
                 }
             }
@@ -108,36 +114,22 @@ export class GameScene extends Phaser.Scene {
     }
 
     private emitFile(): void {
+        if (this.gameOver) return;
+
         var file: Phaser.Physics.Arcade.Image;
         var x = Phaser.Math.Between(25, 775);
         var y = 26;
         file = this.physics.add.image(x, y, "file");
         file.setDisplaySize(50, 50);
-        file.setVelocity(0, 200);
+        file.setVelocity(0, this.fileVelocity);
         file.setInteractive();
         file.on('pointerdown', () => { this.onClick(file) });
         this.physics.add.collider(file, this.ground,
             () => { this.onFall(file) }, null, this);
     }
 
-    private gameLose() {
-        console.log('gameLose');
-        this.time.systems.shutdown();
-        if (!this.gameOver) {
-            this.gameOver = true;
-            this.game.events.emit('game-event', {
-                end: this.gameOver,
-                stats: {
-                    'win': false,
-                    'caught': this.filesCaught,
-                    'lost': this.filesFallen
-                }
-            });
-        }
-    }
-
+    // clear timers and emit game win event
     private gameWin() {
-        console.log('gameWin');
         this.time.systems.shutdown();
         if (!this.gameOver) {
             this.gameOver = true;
@@ -145,6 +137,22 @@ export class GameScene extends Phaser.Scene {
                 end: this.gameOver,
                 stats: {
                     'win': true,
+                    'caught': this.filesCaught,
+                    'lost': this.filesFallen
+                }
+            });
+        }
+    }
+
+    // clear timers and emit game lose event
+    private gameLose() {
+        this.time.systems.shutdown();
+        if (!this.gameOver) {
+            this.gameOver = true;
+            this.game.events.emit('game-event', {
+                end: this.gameOver,
+                stats: {
+                    'win': false,
                     'caught': this.filesCaught,
                     'lost': this.filesFallen
                 }

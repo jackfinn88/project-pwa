@@ -10,7 +10,7 @@
 </ion-header>
 
 <app-statbar [user]="saveData.currentUser.user" [cash]="saveData.currentUser.cash"
-    [webcash]="saveData.currentUser.web_cash" [exp]="saveData.currentUser.exp">
+    [webcash]="saveData.currentUser.webcash" [exp]="saveData.currentUser.level">
 </app-statbar>
 
 <ion-content class="ion-padding">
@@ -20,14 +20,17 @@
             <p>To be used in Lil' Thug Outlaw.</p>
         </div>
 
-        <ion-list lines="none">
+        <ion-list *ngIf="saveData.currentUser.cash" lines="none">
             <ion-item *ngFor="let amount of availableAmounts" class="ion-text-center">
                 <ion-button (click)="onTransferItemClick($event)">
                     <span class="input-currency">{{ amount }}</span>
                 </ion-button>
             </ion-item>
         </ion-list>
+
+        <div *ngIf="!saveData.currentUser.cash" style="color: gray; text-align: center;">No funds currently available.
+        </div>
     </div>
 
-    <div class="footer">Next Level 2020</div>
+    <div class="footer">2020 (Next Level Games)</div>
 </ion-content>

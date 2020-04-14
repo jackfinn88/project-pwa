@@ -10,11 +10,11 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-    <!--START-->
+    <!--START SCREEN-->
     <div *ngIf="!showGame && !showScore" class="start-wrapper">
         <div *ngIf="!showAnim" class="job-info">
-            <div>
-                <h1>Play Job</h1>
+            <h1>Play Job</h1>
+            <div class="hide-landscape">
                 <ion-grid>
                     <ion-row>
                         <ion-col size="3">Subject:</ion-col>
@@ -40,10 +40,6 @@
                         <ion-col size="3">Plug-in:</ion-col>
                         <ion-col>{{ gameType }}.exe</ion-col>
                     </ion-row>
-                    <ion-row>
-                        <ion-col size="3">Message:</ion-col>
-                        <ion-col>{{ job.description }}</ion-col>
-                    </ion-row>
                 </ion-grid>
             </div>
 
@@ -51,13 +47,12 @@
                 <div [ngSwitch]="gameType" class="job-instructions">
                     <h3>Instructions</h3>
                     <br>
-                    <div *ngSwitchCase="'knightfall'">Extract the files and get out of the system. Move by destroying
-                        protection
-                        layers of the same colour and rotating the view to manouver yourself. Land from above to capture
+                    <div *ngSwitchCase="'fallproof'">Extract the files and get out of the system. Move by destroying
+                        blocks of the same colour and rotating the view to manouver yourself. Land from above to capture
                         the files.</div>
-                    <div *ngSwitchCase="'starfall'">Corrupt files by hitting and destroying the data packets
+                    <div *ngSwitchCase="'blitz'">Corrupt files by tapping and destroying the data packets
                         before they reach the server.
-                        Corrupt enough of the transfer before they upload what they need.</div>
+                        Disrupt enough of the transfer before they upload what they need.</div>
                 </div>
                 <ion-button (click)="onPlayButtonClick()">START</ion-button>
             </div>
@@ -67,7 +62,7 @@
         </div>
     </div>
 
-    <!--GAME-->
+    <!--GAME SCREEN-->
     <div *ngIf="showGame" class="game-wrapper crt" [ngSwitch]="gameType">
         <div *ngIf="showFadeEnd" class="fade fade-end">
         </div>
@@ -75,21 +70,21 @@
             <p [attr.data-text]="gameEndText">{{ gameEndText }}</p>
         </div>
 
-        <div *ngSwitchCase="'knightfall'" class="game-container knightfall-container">
-            <div class="ui-overlay knightfall-overlay">
+        <div *ngSwitchCase="'fallproof'" class="game-container fallproof-container">
+            <div class="ui-overlay fallproof-overlay">
                 <ion-button (click)="onTestButtonClick()">TEST</ion-button>
                 <!--REMOVE-->
 
-                <p>Time: {{ timerText }}</p>
+                <p style="display: inline-block">Time: {{ timerText }}</p>
+                <p style="display: inline-block; position: absolute; right: 8px">Rotations left: {{ rotations }}</p>
                 <ion-progress-bar [value]="timerProgress"></ion-progress-bar>
             </div>
-            <iframe class="iframe-game"
-                src="https://jlf40.brighton.domains/dump/angular/test/api/knightfall2/index.html"
-                frameborder="0"></iframe>
+            <iframe class="iframe-game" [src]="iframeSrc | safe" frameborder="0"></iframe>
         </div>
 
-        <div *ngSwitchCase="'starfall'" class="game-container starfall-container">
-            <div class="ui-overlay starfall-overlay">
+        <div *ngSwitchCase="'blitz'" class="game-container blitz-container">
+            <div class="ui-overlay blitz-overlay">
+
                 <ion-button (click)="onTestButtonClick()">TEST</ion-button>
                 <!--REMOVE-->
 
@@ -102,18 +97,14 @@
         </div>
     </div>
 
-    <!--SCORE-->
+    <!--SCORE SCREEN-->
     <div *ngIf="showScore" class="score-wrapper">
         <div class="job-info">
             <h1>{{ feedback.header }}</h1>
 
             <div class="rewards">
-                <ion-grid>
-                    <ion-row>
-                        <ion-col>
-                            <h3>{{ feedback.won ? 'Rewards' : 'Here\'s what you could have won.' }}</h3>
-                        </ion-col>
-                    </ion-row>
+                <h3>{{ feedback.message }}</h3>
+                <ion-grid *ngIf="feedback.won">
                     <ion-row>
                         <ion-col>Cash:</ion-col>
                         <ion-col>{{ job.cash }}</ion-col>

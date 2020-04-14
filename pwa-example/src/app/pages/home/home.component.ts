@@ -16,6 +16,10 @@ export class HomeComponent implements OnInit {
     formView = 'login';
     toggleFormText = { label: 'Don\'t have an account?', button: 'Sign up' };
     showLoading = false;
+    showTutorial = false;
+    slideOpts = {
+        speed: 300
+    }
 
     constructor(public modalCtrl: ModalController, public toastController: ToastController) { }
 
@@ -96,43 +100,89 @@ export class HomeComponent implements OnInit {
     }
 
     onLogin(user) {
-        console.log('HomeComponent', user);
+        console.log('onLogin', user);
 
         if (user) {
             this.showForms = false;
             this.showLoading = true;
+
+            // check if user account already exists on device storage
             let idx = this.saveData.accounts.findIndex(account => account.id === user.id);
-            if (idx > -1) {
-                // account already exists, use
-                this.saveData.currentUser = this.saveData.accounts[idx];
-            } else {
-                // user exists but no account on device
-                let userAccount = {
-                    'id': user.id,
-                    'user': user.user,
-                    'pass': user.pass,
-                    'cash': user.cash,
-                    'web_cash': user.web_cash,
-                    'exp': user.exp,
-                    'level': user.level,
-                    'jobs-completed': user.completed,
-                    'jobs-failed': user.failed,
-                    'active-jobs': [],
-                    'job-data': {
-                        'next-job-renewal': 0,
-                        'jobs': []
+
+            // define initial account details
+            let userAccount = {
+                'id': user.id,
+                'user': user.user,
+                'pass': user.pass,
+                'cash': user.ph_cash,
+                'webcash': user.lto_cash,
+                'exp': user.ph_exp,
+                'total-exp': user.ph_total_exp,
+                'level': user.ph_level,
+                'jobs-completed': user.ph_completed,
+                'jobs-failed': user.ph_failed,
+                'active-jobs': [],
+                'job-data': {
+                    'next-job-renewal': 0,
+                    'jobs': []
+                },
+                'game-data': {
+                    'blitz': {
+                        'upgrades': [
+                            {
+                                'level': user.ph_game01_upgrade01_level,
+                                'active': user.ph_game01_upgrade01_active,
+                            },
+                            {
+                                'level': user.ph_game01_upgrade02_level,
+                                'active': user.ph_game01_upgrade02_active,
+                            }
+                        ],
+                        'dual-use': user.ph_game01_dual
+                    },
+                    'fallproof': {
+                        'upgrades': [
+                            {
+                                'level': user.ph_game02_upgrade01_level,
+                                'active': user.ph_game02_upgrade01_active,
+                            },
+                            {
+                                'level': user.ph_game02_upgrade02_level,
+                                'active': user.ph_game02_upgrade02_active,
+                            }
+                        ],
+                        'dual-use': user.ph_game02_dual
                     }
                 }
-                console.log(userAccount)
+            };
+            let showTutorial = false;
+            if (idx > -1) {
+                // account exists on device, use job data
+                userAccount["active-jobs"] = this.saveData.accounts[idx]["active-jobs"];
+                userAccount["job-data"] = this.saveData.accounts[idx]["job-data"];
+
+                // update save data
+                this.saveData.currentUser = userAccount;
+                this.saveData.accounts[idx] = userAccount;
+            } else {
+                // user exists but no account on device, so store
                 this.saveData.currentUser = userAccount;
                 this.saveData.accounts.push(userAccount);
+
+                // show tutorial
+                showTutorial = true;
             }
 
             localStorage.setItem('saveData', JSON.stringify(this.saveData));
+            localStorage.setItem('account', JSON.stringify(user));
 
             setTimeout(() => {
                 this.showLoading = false;
-                this.showHome = true;
+                if (showTutorial) {
+                    this.showTutorial = true;
+                } else {
+                    this.showHome = true;
+                }
             }, 500);
         } else {
             // user not verified
@@ -140,35 +190,82 @@ export class HomeComponent implements OnInit {
         }
     }
 
-    onRegistration(event) {
-        console.log('HomeComponent', event);
-        this.showForms = false;
+    endTutorial() {
         this.showLoading = true;
-
-        let userAccount = {
-            'id': event.id,
-            'user': event.user,
-            'pass': event.pass,
-            'cash': 0,
-            'web_cash': 0,
-            'exp': 0,
-            'level': 1,
-            'complete': 0,
-            'failed': 0,
-            'active-jobs': [],
-            'job-data': {
-                'next-job-renewal': 0,
-                'jobs': []
-            }
-        }
-        this.saveData.currentUser = userAccount;
-        this.saveData.accounts.push(userAccount);
-        // tbd: log user in - localstorage
-        localStorage.setItem('saveData', JSON.stringify(this.saveData));
+        this.showTutorial = false;
 
         setTimeout(() => {
             this.showLoading = false;
             this.showHome = true;
         }, 500);
+    }
+
+    onRegistration(user) {
+        console.log('onRegistration', user);
+
+        if (user) {
+            this.showForms = false;
+            this.showLoading = true;
+
+            // store user record as new device account
+            let userAccount = {
+                'id': user.id,
+                'user': user.user,
+                'pass': user.pass,
+                'cash': user.ph_cash,
+                'webcash': user.lto_cash,
+                'exp': user.ph_exp,
+                'total-exp': user.ph_total_exp,
+                'level': user.ph_level,
+                'jobs-completed': user.ph_completed,
+                'jobs-failed': user.ph_failed,
+                'active-jobs': [],
+                'job-data': {
+                    'next-job-renewal': 0,
+                    'jobs': []
+                },
+                'game-data': {
+                    'blitz': {
+                        'upgrades': [
+                            {
+                                'level': user.ph_game01_upgrade01_level,
+                                'active': user.ph_game01_upgrade01_active,
+                            },
+                            {
+                                'level': user.ph_game01_upgrade02_level,
+                                'active': user.ph_game01_upgrade02_active,
+                            }
+                        ],
+                        'dual-use': user.ph_game01_dual
+                    },
+                    'fallproof': {
+                        'upgrades': [
+                            {
+                                'level': user.ph_game02_upgrade01_level,
+                                'active': user.ph_game02_upgrade01_active,
+                            },
+                            {
+                                'level': user.ph_game02_upgrade02_level,
+                                'active': user.ph_game02_upgrade02_active,
+                            }
+                        ],
+                        'dual-use': user.ph_game02_dual
+                    }
+                }
+            }
+            this.saveData.currentUser = userAccount;
+            this.saveData.accounts.push(userAccount);
+
+            localStorage.setItem('saveData', JSON.stringify(this.saveData));
+            localStorage.setItem('account', JSON.stringify(user));
+
+            setTimeout(() => {
+                this.showLoading = false;
+                this.showTutorial = true;
+            }, 500);
+        } else {
+            // user not registered
+            this.presentToast('Registration failed, try again', 2000, 'danger');
+        }
     }
 }
