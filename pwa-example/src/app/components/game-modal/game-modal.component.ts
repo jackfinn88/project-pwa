@@ -15,10 +15,8 @@ export class GameModalComponent implements OnInit, OnDestroy {
     onMessage(event) {
         let data = JSON.parse(event.data);
         if (data.rotate) {
-            console.log('ROTATION');
             this.onFallproofRotate();
         } else if (data.win) {
-            console.log('WIN');
             this.onGameWin();
         }
         /*

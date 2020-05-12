@@ -33,7 +33,6 @@ export class AccountComponent implements OnInit {
             }, {
                 text: 'Confirm',
                 handler: () => {
-                    console.log('Confirm Okay');
                     this.logout();
                 }
             }
