@@ -21,12 +21,9 @@ export class AccountComponent implements OnInit {
     ngOnInit() {
         this.saveData = JSON.parse(localStorage.getItem('saveData'));
         this.player = this.saveData.currentUser;
-        let time = Date.now();
-        console.log(time.toLocaleString())
     }
 
     onLogoutClick() {
-        console.log('onTransferItemClick');
         let header = 'Logout';
         let message = 'Are you sure you want to sign out?';
         let buttons = [
@@ -46,7 +43,6 @@ export class AccountComponent implements OnInit {
     }
 
     onDeleteClick() {
-        console.log('onTransferItemClick');
         let header = 'Delete Account';
         let message = 'Are you sure you want to delete your account?<br><br><strong>Note:</strong> This will also invalidate your account for use in <strong>Lil\' Thug Outlaw</strong>.';
         let buttons = [
@@ -56,7 +52,6 @@ export class AccountComponent implements OnInit {
             }, {
                 text: 'Confirm',
                 handler: () => {
-                    console.log('Confirm Okay');
                     this.delete();
                 }
             }
