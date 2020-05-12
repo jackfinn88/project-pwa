@@ -1,18 +1,18 @@
 <ion-header>
     <ion-toolbar>
-        <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
+        <ion-title><span style="color: #fff;">port</span><span style="color: #f90;">hub</span></ion-title>
     </ion-toolbar>
 </ion-header>
 
 <app-statbar *ngIf="showHome" [user]="saveData.currentUser.user" [cash]="saveData.currentUser.cash"
-    [webcash]="saveData.currentUser.webcash" [exp]="saveData.currentUser.level">
+    [webcash]="saveData.currentUser.webcash" [level]="saveData.currentUser.level">
 </app-statbar>
 
 <ion-content *ngIf="!showTutorial" class="ion-padding">
     <div style="height:90%">
         <div class="page-description">
-            <h1>Welcome to PortHub</h1>
-            <p>Access local or remote network ports.</p>
+            <h2>Welcome to PortHub</h2>
+            <p>Access local or remote network ports</p>
         </div>
 
         <div *ngIf="showHome" class="home-content">
@@ -40,7 +40,6 @@
         </div>
 
         <div *ngIf="showForms" class="user-forms" [ngSwitch]="formView">
-
             <div *ngIf="!changingForm">
                 <div *ngSwitchCase="'login'">
                     <app-login (onVerify)="onLogin($event)"></app-login>
@@ -65,7 +64,7 @@
         </div>
     </div>
 
-    <div class="footer">2020 (Next Level Games)</div>
+    <div class="footer">2020 NEXT LEVEL GAMES</div>
 </ion-content>
 
 <!-- TUTORIAL SLIDES -->
@@ -78,9 +77,27 @@
                     <h4>Welcome to <strong>PortHub</strong></h4>
                     <p>Engage in the darker side of the digital world and carry out cyber attacks tasked to you by
                         various unsavoury characters, to earn <strong>Cash</strong> and <strong>XP</strong> which you
-                        can transfer to
-                        your
-                        <strong>Lil'Thug Outlaw</strong> account</p>
+                        can then transfer to your <strong>Lil'Thug Outlaw</strong> account</p>
+                    <p>An account can be registered from either platform and used for both</p>
+                    <ion-grid>
+                        <ion-row>
+                            <ion-col size="10">
+                                <p style="margin: 5px"><i>https://jlf40.brighton.domains/ci328/a1/game/outlaw.html</i>
+                                </p>
+                            </ion-col>
+                            <ion-col size="2">
+                                <ion-buttons>
+                                    <ion-button slot="icon-only"
+                                        (click)="copyTextToClipboard('https://jlf40.brighton.domains/ci328/a1/game/outlaw.html')">
+                                        <ion-icon name="copy-outline"></ion-icon>
+                                    </ion-button>
+                                </ion-buttons>
+                                <p style="margin: 0; font-size: .6em">&nbsp;&nbsp;&nbsp;COPY</p>
+                            </ion-col>
+                        </ion-row>
+                    </ion-grid>
+
+                    <p><strong>Lil' Thug Outlaw</strong> is a desktop game, view the above URL from a computer</p>
                 </div>
             </div>
         </ion-slide>
@@ -95,14 +112,6 @@
                         out, while <strong>Remote</strong>
                         jobs can be
                         done from your current location but may reward less</p>
-                </div>
-            </div>
-        </ion-slide>
-        <ion-slide>
-            <div class="tutorial-slide">
-                <h1>The Map</h1>
-                <div class="tutorial-content">
-                    <h4>Know your surroundings</h4>
                     <p>Any jobs you accept will be marked on a real-world map around your device's location</p>
                     <p>Tap a <strong>Marker</strong> to view the job description and start the challenge</p>
                     <p>(Access to device Location will be required)</p>
@@ -115,13 +124,15 @@
                 <div class="tutorial-content">
                     <h4>Don't get caught</h4>
                     <p><strong>Blitz:</strong></p>
-                    <p>Corrupt files by tapping and destroying the data packets
+                    <p>Corrupt file transfers by tapping and destroying the data packets
                         before they reach the server.
                         Disrupt enough of the transfer before they upload what they need.</p>
+                    <img src="assets/images/blitz-show.png" alt="Blitz image">
                     <p><strong>Fallproof:</strong></p>
                     <p>Extract the files and get out of the system. Move by destroying
                         blocks of the same colour and rotating the view to manouver yourself. Land from above to capture
                         the files.</p>
+                    <img src="assets/images/fallproof-show.png" alt="Blitz image">
                 </div>
             </div>
         </ion-slide>
@@ -135,14 +146,6 @@
                             Outlaw</strong>
                         account</p>
                     <p>Different characters pay different amounts and remote jobs earn less</p>
-                </div>
-            </div>
-        </ion-slide>
-        <ion-slide>
-            <div class="tutorial-slide">
-                <h1>View your Account</h1>
-                <div class="tutorial-content">
-                    <h4>Check your progress</h4>
                     <p>You can view some of your stats in the <strong>Account</strong> section</p>
                     <p>It will display cash values for both <strong>PortHub</strong> and <strong>Lil' Thug
                             Outlaw</strong></p>
@@ -152,23 +155,11 @@
         </ion-slide>
         <ion-slide>
             <div class="tutorial-slide">
-                <h1>Lil' Thug Outlaw</h1>
-                <div class="tutorial-content">
-                    <h4>Remember your password</h4>
-                    <p>This same account can be used to sign in to <strong>Lil' Thug Outlaw</strong></p>
-                    <p>An account can be registered from either and used for both</p>
-                    <p>https://jlf40.brighton.domains/ci328/a1/game/outlaw.html</p>
-                    <p><strong>Lil' Thug Outlaw</strong> is a desktop game, view this URL from a computer</p>
-                </div>
-            </div>
-        </ion-slide>
-        <ion-slide>
-            <div class="tutorial-slide">
                 <h1>That's it!</h1>
                 <div class="tutorial-content">
                     <h4>Have fun out there</h4>
                     <p>There's not a lot more I can teach you, I'm sure you can figure it out</p>
-                    <p>Goodluck!</p>
+                    <p>Good luck!</p>
 
                     <ion-button style="margin-top: 20px" (click)="endTutorial()">LET'S GO</ion-button>
                 </div>

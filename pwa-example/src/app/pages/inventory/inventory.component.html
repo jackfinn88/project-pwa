@@ -5,23 +5,23 @@
                 <ion-icon name="arrow-back"></ion-icon>
             </ion-button>
         </ion-buttons>
-        <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
+        <ion-title><span style="color: #fff;">port</span><span style="color: #f90;">hub</span></ion-title>
     </ion-toolbar>
 </ion-header>
 
 <app-statbar [user]="saveData.currentUser.user" [cash]="saveData.currentUser.cash"
-    [webcash]="saveData.currentUser.webcash" [exp]="saveData.currentUser.level">
+    [webcash]="saveData.currentUser.webcash" [level]="saveData.currentUser.level">
 </app-statbar>
 
 <ion-content class="ion-padding">
     <div class="content">
         <div class="page-description">
-            <h1>Unlocks/Upgrades</h1>
-            <p>Increase performance of Plug-ins, no refunds.</p>
+            <h2>Purchase Upgrades</h2>
+            <p>Increase performance of Plug-ins, no refunds</p>
         </div>
 
         <div *ngFor="let plugin of availablePlugins; index as i" class="upgrade-list-wrapper">
-            <h1>{{ pluginKeys[i] }}</h1>
+            <h1>{{ pluginKeys[i] }}<span>.exe</span></h1>
             <p>ACTIVE</p>
             <ion-list class="upgrade-list" lines="none">
                 <ion-item *ngFor="let upgrade of plugin.upgrades, index as j">
@@ -45,5 +45,5 @@
         </div>
     </div>
 
-    <div class="footer">2020 (Next Level Games)</div>
+    <div class="footer">2020 NEXT LEVEL GAMES</div>
 </ion-content>

@@ -203,45 +203,43 @@ export class GameModalComponent implements OnInit, OnDestroy {
     startBlitz() {
         this.game = new BlitzGame(this.config);
 
-        // initial data
-        let maxFilesNeeded = 40;
-        let minFilesNeeded = 20;
-        let maxCompleteNeeded = 15;
-        let minCompleteNeeded = 10;
+        // base data for random ranges
+        let maxPacketsCatch = 30;
+        let minPacketsCatch = 24;
+        let maxPacketsLose = 16;
+        let minPacketsLose = 12;
 
-        let dataDmgValues = [32, 64, 128, 256];
+        // total packets needed to corrupt or complete transfer
+        let corrupt = Math.floor(Math.random() * (maxPacketsCatch - minPacketsCatch + 1)) + minPacketsCatch;
+        let complete = Math.floor(Math.random() * (maxPacketsLose - minPacketsLose + 1)) + minPacketsLose;
 
-        let corrupt = ((Math.floor(Math.random() * (maxFilesNeeded - minFilesNeeded + 1)) + minFilesNeeded) * 64) / 1000;
-        let complete = ((Math.floor(Math.random() * (maxCompleteNeeded - minCompleteNeeded + 1)) + minCompleteNeeded) * 64) / 1000;
-
-        // get amount to add to progress when data packet is destroyed
+        // get increment added when data packet is destroyed, from upgrade level
         let upgrade01Level = parseInt(this.player["game-data"].blitz.upgrades["0"].level, 10);
-        let corruptValue = parseInt(this.player["game-data"].blitz.upgrades["0"].active, 10) ? dataDmgValues[upgrade01Level] : dataDmgValues[0];
+        let packetsPerHit = parseInt(this.player["game-data"].blitz.upgrades["0"].active, 10) ? upgrade01Level + 1 : 1;
 
-        // get data packet velocity
+        // get data packet velocity, from upgrade level
         let upgrade02Level = parseInt(this.player["game-data"].blitz.upgrades["1"].level, 10);
-        let speedBaseValue = 400;
-        let speed = speedBaseValue - (parseInt(this.player["game-data"].blitz.upgrades["1"].active, 10) ? upgrade02Level * 100 : 0);
+        let speedBaseValue = 325;
+        let speed = speedBaseValue - (parseInt(this.player["game-data"].blitz.upgrades["1"].active, 10) ? upgrade02Level * 75 : 0);
 
         console.log({
             "data-per-hit": {
                 "level": upgrade01Level,
                 "active": this.player["game-data"].blitz.upgrades["0"].active,
-                "value": corruptValue,
-                "default": dataDmgValues[0]
+                "value": packetsPerHit,
             },
             "packet-velocity": {
                 "level": upgrade02Level,
                 "active": this.player["game-data"].blitz.upgrades["1"].active,
                 "value": speed,
-                "default": speedBaseValue
             }
         });
 
         this.game.options = {
-            'catch': (corrupt / corruptValue) * 1000,
-            'lose': (complete / 64) * 1000,
-            'fileVelocity': speed
+            'catch': corrupt,
+            'lose': complete,
+            'packetVelocity': speed,
+            'packetsPerHit': packetsPerHit
         }
 
         this.uiData = {
@@ -249,8 +247,8 @@ export class GameModalComponent implements OnInit, OnDestroy {
             'caughtProgress': 0,
             'lost': 0,
             'lostProgress': 0,
-            'corrupt': corrupt,
-            'complete': complete
+            'corrupt': (corrupt * 128) / 1000,
+            'complete': (complete * 128) / 1000
         };
 
         // subscribe to game-events
@@ -455,7 +453,7 @@ export class GameModalComponent implements OnInit, OnDestroy {
     // console animation
     runAnim = false;
     textarea;
-    speed = 100; // typing speed (ms)
+    speed = 30; // typing speed (ms)
     text = 'start ';
     i = 0;
     count = 0;
@@ -500,9 +498,8 @@ export class GameModalComponent implements OnInit, OnDestroy {
         }
         this.textarea.scrollIntoView(false);
         this.i++;
-        this.time = Math.floor(Math.random() * 4) + 1;
+        this.time = (Math.floor(Math.random() * 4) + 1) + this.speed;
         this.count += this.time;
-
         setTimeout(() => {
             if (this.runAnim) {
                 if (this.i < this.output.length - 1) {
@@ -543,8 +540,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "BIOS-e820: [mem 0x000000000009e000-0x000000000009ffff] reserved",
         "BIOS-e820: [mem 0x0000000000100000-0x000000001fffffff] usable",
         "BIOS-e820: [mem 0x0000000020000000-0x00000000201fffff] reserved",
-        "BIOS-e820: [mem 0x0000000020200000-0x0000000040003fff] usable",
-        "BIOS-e820: [mem 0x0000000040004000-0x0000000040004fff] reserved",
         "BIOS-e820: [mem 0x0000000040005000-0x00000000c9746fff] usable",
         "BIOS-e820: [mem 0x00000000c9747000-0x00000000c9d47fff] ACPI NVS",
         "BIOS-e820: [mem 0x00000000c9d48000-0x00000000c9d4afff] type 20",
@@ -574,8 +569,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "reg 0, base: 0GB, range: 16GB, type WB",
         "reg 1, base: 16GB, range: 512MB, type WB",
         "reg 2, base: 16896MB, range: 256MB, type WB",
-        "reg 3, base: 3584MB, range: 512MB, type UC",
-        "reg 4, base: 3328MB, range: 256MB, type UC",
         "total RAM covered: 16302M",
         "mtrr_cleanup: can not find optimal value",
         "please specify mtrr_gran_size/mtrr_chunk_size",
@@ -584,102 +577,16 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "Scanning 1 areas for low memory corruption",
         "Base memory trampoline at [ffff880000098000] 98000 size 24576",
         "init_memory_mapping: [mem 0x00000000-0x000fffff]",
-        " [mem 0x00000000-0x000fffff] page 4k",
-        "BRK [0x01fe5000, 0x01fe5fff] PGTABLE",
-        "BRK [0x01fe6000, 0x01fe6fff] PGTABLE",
-        "BRK [0x01fe7000, 0x01fe7fff] PGTABLE",
-        "init_memory_mapping: [mem 0x42f000000-0x42f1fffff]",
-        " [mem 0x42f000000-0x42f1fffff] page 2M",
-        "BRK [0x01fe8000, 0x01fe8fff] PGTABLE",
-        "init_memory_mapping: [mem 0x420000000-0x42effffff]",
-        " [mem 0x420000000-0x42effffff] page 2M",
-        "init_memory_mapping: [mem 0x400000000-0x41fffffff]",
-        " [mem 0x400000000-0x41fffffff] page 2M",
-        "init_memory_mapping: [mem 0x00100000-0x1fffffff]",
-        " [mem 0x00100000-0x001fffff] page 4k",
-        " [mem 0x00200000-0x1fffffff] page 2M",
-        "init_memory_mapping: [mem 0x20200000-0x40003fff]",
-        " [mem 0x20200000-0x3fffffff] page 2M",
-        " [mem 0x40000000-0x40003fff] page 4k",
-        "BRK [0x01fe9000, 0x01fe9fff] PGTABLE",
-        "BRK [0x01fea000, 0x01feafff] PGTABLE",
-        "init_memory_mapping: [mem 0x40005000-0xc9746fff]",
-        " [mem 0x40005000-0x401fffff] page 4k",
-        " [mem 0x40200000-0xc95fffff] page 2M",
-        " [mem 0xc9600000-0xc9746fff] page 4k",
         "init_memory_mapping: [mem 0xc9d4b000-0xc9d60fff]",
         "RAMDISK: [mem 0x357f2000-0x36bf0fff]",
         "ACPI: Early table checksum verification disabled",
         "ACPI: RSDP 0x00000000CA852000 000024 (v02 _ASUS_)",
-        "Zone ranges:",
-        "  DMA      [mem 0x00001000-0x00ffffff]",
-        "  DMA32    [mem 0x01000000-0xffffffff]",
-        "  Normal   [mem 0x100000000-0x42f1fffff]",
-        "Movable zone start for each node",
-        "Early memory node ranges",
-        "  node   0: [mem 0x00001000-0x0009dfff]",
-        "  node   0: [mem 0x00100000-0x1fffffff]",
-        "  node   0: [mem 0x100000000-0x42f1fffff]",
-        "Initmem setup node 0 [mem 0x00001000-0x42f1fffff]",
-        "On node 0 totalpages: 4165015",
-        "  DMA zone: 64 pages used for memmap",
-        "  DMA zone: 24 pages reserved",
-        "  DMA zone: 3997 pages, LIFO batch:0",
-        "  DMA32 zone: 12848 pages used for memmap",
-        "  DMA32 zone: 822266 pages, LIFO batch:31",
-        "  Normal zone: 52168 pages used for memmap",
-        "  Normal zone: 3338752 pages, LIFO batch:31",
-        "Reserving Intel graphics stolen memory at 0xcbe00000-0xcfdfffff",
-        "ACPI: PM-Timer IO Port: 0x408",
-        "ACPI: Local APIC address 0xfee00000",
-        "ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)",
-        "ACPI: LAPIC (acpi_id[0x02] lapic_id[0x02] enabled)",
-        "ACPI: LAPIC (acpi_id[0x03] lapic_id[0x04] enabled)",
-        "ACPI: LAPIC_NMI (acpi_id[0xff] high edge lint[0x1])",
-        "ACPI: IOAPIC (id[0x02] address[0xfec00000] gsi_base[0])",
-        "IOAPIC[0]: apic_id 2, version 32, address 0xfec00000, GSI 0-23",
-        "ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)",
-        "ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)",
-        "ACPI: IRQ0 used by override.",
-        "ACPI: IRQ9 used by override.",
-        "Using ACPI (MADT) for SMP configuration information",
-        "ACPI: HPET id: 0x8086a701 base: 0xfed00000",
-        "smpboot: Allowing 8 CPUs, 0 hotplug CPUs",
-        "PM: Registered nosave memory: [mem 0x00000000-0x00000fff]",
-        "PM: Registered nosave memory: [mem 0x0009e000-0x0009ffff]",
-        "PM: Registered nosave memory: [mem 0x000a0000-0x000fffff]",
-        "PM: Registered nosave memory: [mem 0x20000000-0x201fffff]",
-        "PM: Registered nosave memory: [mem 0x40004000-0x40004fff]",
-        "PM: Registered nosave memory: [mem 0xc9747000-0xc9d47fff]",
-        "PM: Registered nosave memory: [mem 0xc9d48000-0xc9d4afff]",
-        "PM: Registered nosave memory: [mem 0xc9d61000-0xc9d66fff]",
-        "PM: Registered nosave memory: [mem 0xc9d69000-0xc9d72fff]",
-        "PM: Registered nosave memory: [mem 0xc9f07000-0xc9f0afff]",
-        "PM: Registered nosave memory: [mem 0xc9f54000-0xc9f5afff]",
-        "e820: [mem 0xcfe00000-0xf7ffffff] available for PCI devices",
-        "Booting paravirtualized kernel on bare hardware",
-        "setup_percpu: NR_CPUS:256 nr_cpumask_bits:256 nr_cpu_ids:8 nr_node_ids:1",
-        "PERCPU: Embedded 31 pages/cpu @ffff88042ee00000 s87040 r8192 d31744 u262144",
-        "pcpu-alloc: s87040 r8192 d31744 u262144 alloc=1*2097152",
-        "pcpu-alloc: [0] 0 1 2 3 4 5 6 7 ",
-        "Built 1 zonelists in Node order, mobility grouping on.  Total pages: 4099911",
-        "Policy zone: Normal",
-        "xsave: enabled xstate_bv 0x7, cntxt size 0x340 using standard form",
-        "AGP: Checking aperture...",
-        "AGP: No AGP bridge found",
-        "Calgary: detecting Calgary via BIOS EBDA area",
-        "Calgary: Unable to locate Rio Grande table in EBDA - bailing!",
-        "SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=8, Nodes=1",
-        "Hierarchical RCU implementation.",
-        "	RCU dyntick-idle grace-period acceleration is enabled.",
-        "	RCU restricting CPUs from NR_CPUS=256 to nr_cpu_ids=8.",
         "RCU: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=8",
         "NR_IRQS:16640 nr_irqs:488 16",
         "	Offload RCU callbacks from all CPUs",
         "	Offload RCU callbacks from CPUs: 0-7.",
         "vt handoff: transparent VT on vt#7",
         "Console: colour dummy device 80x25",
-        "console [tty0] enabled",
         "hpet clockevent registered",
         "tsc: Fast TSC calibration using PIT",
         "tsc: Detected 2394.543 MHz processor",
@@ -688,55 +595,13 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "ACPI: All ACPI Tables successfully acquired",
         "Security Framework initialized",
         "AppArmor: AppArmor initialized",
-        "Yama: becoming mindful.",
-        "Dentry cache hash table entries: 2097152 (order: 12, 16777216 bytes)",
-        "Inode-cache hash table entries: 1048576 (order: 11, 8388608 bytes)",
-        "Mount-cache hash table entries: 32768 (order: 6, 262144 bytes)",
         "Mountpoint-cache hash table entries: 32768 (order: 6, 262144 bytes)",
-        "Initializing cgroup subsys memory",
-        "Initializing cgroup subsys devices",
-        "Initializing cgroup subsys freezer",
-        "Initializing cgroup subsys net_cls",
-        "Initializing cgroup subsys blkio",
-        "Initializing cgroup subsys perf_event",
-        "Initializing cgroup subsys net_prio",
-        "Initializing cgroup subsys hugetlb",
         "CPU: Physical Processor ID: 0",
         "CPU: Processor Core ID: 0",
         "ENERGY_PERF_BIAS: Set to 'normal', was 'performance'",
         "ENERGY_PERF_BIAS: View and update with x86_energy_perf_policy(8)",
         "mce: CPU supports 9 MCE banks",
         "CPU0: Thermal monitoring enabled (TM1)",
-        "process: using mwait in idle threads",
-        "Last level iTLB entries: 4KB 512, 2MB 8, 4MB 8",
-        "Last level dTLB entries: 4KB 512, 2MB 32, 4MB 32, 1GB 0",
-        "Freeing SMP alternatives memory: 32K (ffffffff81e96000 - ffffffff81e9e000)",
-        "Ignoring BGRT: invalid status 0 (expected 1)",
-        "ftrace: allocating 30086 entries in 118 pages",
-        "..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1",
-        "... version:                3",
-        "... bit width:              48",
-        "... generic registers:      4",
-        "... value mask:             0000ffffffffffff",
-        "... max period:             0000ffffffffffff",
-        "... fixed-purpose events:   3",
-        "... event mask:             000000070000000f",
-        "x86: Booting SMP configuration:",
-        ".... node  #0, CPUs:      #1",
-        "CPU1 microcode updated early to revision 0x1b, date = 2014-05-29",
-        "NMI watchdog: enabled on all CPUs, permanently consumes one hw-PMU counter.",
-        " #2",
-        "CPU2 microcode updated early to revision 0x1b, date = 2014-05-29",
-        " #3",
-        "CPU3 microcode updated early to revision 0x1b, date = 2014-05-29",
-        " #4 #5 #6 #7",
-        "x86: Booted up 1 node, 8 CPUs",
-        "smpboot: Total of 8 processors activated (38312.68 BogoMIPS)",
-        "devtmpfs: initialized",
-        "evm: security.selinux",
-        "evm: security.SMACK64",
-        "evm: security.ima",
-        "evm: security.capability",
         "PM: Registering ACPI NVS region [mem 0xc9747000-0xc9d47fff] (6295552 bytes)",
         "PM: Registering ACPI NVS region [mem 0xca602000-0xca881fff] (2621440 bytes)",
         "PM: Registering ACPI NVS region [mem 0xca888000-0xca8cafff] (274432 bytes)",
@@ -750,61 +615,12 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5",
         "PCI: MMCONFIG at [mem 0xf8000000-0xfbffffff] reserved in E820",
         "PCI: Using configuration type 1 for base access",
-        "ACPI: Added _OSI(Module Device)",
-        "ACPI: Added _OSI(Processor Device)",
-        "ACPI: Added _OSI(3.0 _SCP Extensions)",
-        "ACPI: Added _OSI(Processor Aggregator Device)",
-        "ACPI : EC: EC description table is found, configuring boot EC",
-        "ACPI: Executed 1 blocks of module-level executable AML code",
-        "[Firmware Bug]: ACPI: BIOS _OSI(Linux) query ignored",
-        "ACPI: Dynamic OEM Table Load:",
-        "ACPI: SSDT 0xFFFF88041C049000 000853 (v01 PmRef  Cpu0Cst  00003001 INTL 20051117)",
-        "ACPI: Dynamic OEM Table Load:",
-        "ACPI: SSDT 0xFFFF88041C7D4C00 000303 (v01 PmRef  ApIst    00003000 INTL 20051117)",
-        "ACPI: Dynamic OEM Table Load:",
-        "ACPI: SSDT 0xFFFF88041C7DB200 000119 (v01 PmRef  ApCst    00003000 INTL 20051117)",
-        "ACPI: Interpreter enabled",
-        "ACPI: (supports S0 S3 S4 S5)",
-        "ACPI: Using IOAPIC for interrupt routing",
-        "ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-3e])",
-        "acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]",
-        "acpi PNP0A08:00: _OSC: platform does not support [PCIeHotplug PME]",
-        "acpi PNP0A08:00: _OSC: OS now controls [AER PCIeCapability]",
-        "acpi PNP0A08:00: FADT indicates ASPM is unsupported, using BIOS configuration",
-        "PCI host bridge to bus 0000:00",
-        "pci_bus 0000:00: root bus resource [bus 00-3e]",
-        "pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7]",
-        "pci_bus 0000:00: root bus resource [io  0x0d00-0xffff]",
-        "pci 0000:00:00.0: [8086:0154] type 00 class 0x060000",
-        "pci 0000:00:01.0: [8086:0151] type 01 class 0x060400",
-        "pci 0000:00:01.0: PME# supported from D0 D3hot D3cold",
-        "pci 0000:00:01.0: System wakeup disabled by ACPI",
-        "pci 0000:00:02.0: [8086:0166] type 00 class 0x030000",
-        "pci 0000:00:02.0: reg 0x10: [mem 0xf7400000-0xf77fffff 64bit]",
-        "pci 0000:00:02.0: reg 0x18: [mem 0xd0000000-0xdfffffff 64bit pref]",
-        "ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 10 11 12) *0, disabled.",
-        "ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 10 12) *0, disabled.",
-        "ACPI: Enabled 4 GPEs in block 00 to 3F",
-        "ACPI : EC: GPE = 0x19, I/O: command/status = 0x66, data = 0x62",
-        "vgaarb: setting as boot device: PCI:0000:00:02.0",
-        "vgaarb: device added: PCI:0000:00:02.0,decodes=io+mem,owns=io+mem,locks=none",
-        "vgaarb: device added: PCI:0000:01:00.0,decodes=io+mem,owns=none,locks=none",
-        "vgaarb: loaded",
-        "vgaarb: bridge control possible 0000:01:00.0",
-        "vgaarb: no bridge control possible 0000:00:02.0",
         "SCSI subsystem initialized",
         "libata version 3.00 loaded.",
         "ACPI: bus type USB registered",
         "usbcore: registered new interface driver usbfs",
         "usbcore: registered new interface driver hub",
         "usbcore: registered new device driver usb",
-        "PCI: Using ACPI for IRQ routing",
-        "PCI: pci_cache_line_size set to 64 bytes",
-        "e820: reserve RAM buffer [mem 0x0009e000-0x0009ffff]",
-        "e820: reserve RAM buffer [mem 0x40004000-0x43ffffff]",
-        "e820: reserve RAM buffer [mem 0xc9747000-0xcbffffff]",
-        "e820: reserve RAM buffer [mem 0xc9d61000-0xcbffffff]",
-        "e820: reserve RAM buffer [mem 0x42f200000-0x42fffffff]",
         "NetLabel: Initializing",
         "NetLabel:  domain hash size = 128",
         "NetLabel:  protocols = UNLABELED CIPSOv4",
@@ -817,7 +633,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "system 00:00: [mem 0xfed40000-0xfed44fff] has been reserved",
         "system 00:00: Plug and Play ACPI device, IDs PNP0c01 (active)",
         "system 00:01: [io  0x0680-0x069f] has been reserved",
-        "system 00:01: [io  0x1000-0x100f] has been reserved",
         "system 00:01: Plug and Play ACPI device, IDs PNP0c02 (active)",
         "ieee80211 phy0: Selected rate control algorithm 'iwl-agn-rs'",
         "asus_wmi: ASUS WMI generic driver loaded",
@@ -828,15 +643,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "uvcvideo: Found UVC 1.00 device ASUS USB2.0 Webcam (1bcf:2883)",
         "Adding 16760828k swap on /dev/sda5.  Priority:-1 extents:1 across:16760828k SSFS",
         "usbcore: registered new interface driver uvcvideo",
-        "USB Video Class driver (1.1.1)",
-        "sound hdaudioC0D0: autoconfig: line_outs=2 (0x14/0x16/0x0/0x0/0x0) type:speaker",
-        "sound hdaudioC0D0:    speaker_outs=0 (0x0/0x0/0x0/0x0/0x0)",
-        "sound hdaudioC0D0:    hp_outs=1 (0x21/0x0/0x0/0x0/0x0)",
-        "sound hdaudioC0D0:    mono: mono_out=0x0",
-        "sound hdaudioC0D0:    dig-out=0x1e/0x0",
-        "sound hdaudioC0D0:    inputs:",
-        "sound hdaudioC0D0:      Internal Mic=0x19",
-        "sound hdaudioC0D0:      Mic=0x18",
         "fbcon: inteldrmfb (fb0) is primary device",
         "Console: switching to colour frame buffer device 240x67",
         "i915 0000:00:02.0: fb0: inteldrmfb frame buffer device",
@@ -847,7 +653,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "EXT4-fs (sda4): re-mounted. Opts: errors=remount-ro",
         "systemd-journald[346]: Received request to flush runtime journal from PID 1",
         "EXT4-fs (sda2): mounted filesystem with ordered data mode. Opts: (null)",
-        "EXT4-fs (sda7): mounted filesystem with ordered data mode. Opts: (null)",
         "bbswitch: version 0.7",
         "bbswitch: Found integrated VGA device 0000:00:02.0: \_SB_.PCI0.GFX0",
         "bbswitch: Found discrete VGA device 0000:01:00.0: \_SB_.PCI0.PEG0.PEGP",
@@ -865,9 +670,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         "wlan0: authenticate with 00:90:cc:ea:f4:16",
         "wlan0: send auth to 00:90:cc:ea:f4:16 (try 1/3)",
         "wlan0: authenticated",
-        "iwlwifi 0000:03:00.0 wlan0: disabling HT/VHT due to WEP/TKIP use",
-        "iwlwifi 0000:03:00.0 wlan0: disabling HT as WMM/QoS is not supported by the AP",
-        "iwlwifi 0000:03:00.0 wlan0: disabling VHT as WMM/QoS is not supported by the AP",
         "wlan0: associate with 00:90:cc:ea:f4:16 (try 1/3)",
         "wlan0: RX AssocResp from 00:90:cc:ea:f4:16 (capab=0x431 status=0 aid=3)",
         "wlan0: associated",

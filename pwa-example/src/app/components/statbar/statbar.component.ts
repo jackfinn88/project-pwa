@@ -30,7 +30,6 @@ export class StatbarComponent implements OnInit {
 
     ngOnInit() {
         this.updatePlayer();
-        console.log('statbar: ngOnInit');
     }
 
     updatePlayer() {

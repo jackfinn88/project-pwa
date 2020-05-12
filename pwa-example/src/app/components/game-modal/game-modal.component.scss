@@ -187,7 +187,8 @@ ion-row:not(:last-child) {
   line-height: .75;
   margin: auto;
   color: #1af0dc;
-  font-size: 2em;
+  font-size: 1.5em;
+  font-family: dead;
   text-align: center;
   transform: scaleX(var(--scale, 1));
   animation: glitch-p 11s infinite alternate;
@@ -258,12 +259,12 @@ ion-row:not(:last-child) {
     --top: 6;
   }
   80% {
-    --left: .07;
+    --left: .02;
     --v-height: 5%;
     --top: 8;
   }
   100% {
-    --left: .083;
+    --left: .043;
     --v-height: 30%;
     --top: 1;
   }
@@ -297,7 +298,7 @@ ion-row:not(:last-child) {
     --top: 8;
   }
   100% {
-    --left: -.083;
+    --left: -.043;
     --v-height: 30%;
     --top: 1;
   }
@@ -310,7 +311,7 @@ pre {
   }
   
   .load {
-      text-align: left;
+    text-align: left;
     font-family: monospace;
     margin: 0 auto;
     min-height: 100%;

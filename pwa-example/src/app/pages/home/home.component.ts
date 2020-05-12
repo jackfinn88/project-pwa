@@ -21,7 +21,7 @@ export class HomeComponent implements OnInit {
         speed: 300
     }
 
-    constructor(public modalCtrl: ModalController, public toastController: ToastController) { }
+    constructor(public modalCtrl: ModalController, public toastCtrl: ToastController) { }
 
     ngOnInit() {
         console.log('ngOnInit');
@@ -54,7 +54,7 @@ export class HomeComponent implements OnInit {
     }
 
     async presentToast(message, duration, colour) {
-        const toast = await this.toastController.create({
+        const toast = await this.toastCtrl.create({
             message: message,
             duration: duration,
             color: colour,
@@ -267,5 +267,21 @@ export class HomeComponent implements OnInit {
             // user not registered
             this.presentToast('Registration failed, try again', 2000, 'danger');
         }
+    }
+
+    copyTextToClipboard(val: string) {
+        const selBox = document.createElement('textarea');
+        selBox.style.position = 'fixed';
+        selBox.style.left = '0';
+        selBox.style.top = '0';
+        selBox.style.opacity = '0';
+        selBox.innerText = val;
+        document.body.appendChild(selBox);
+        selBox.focus();
+        selBox.select();
+        document.execCommand('copy');
+        document.body.removeChild(selBox);
+
+        this.presentToast('Copied to clipboard', 3000, 'medium');
     }
 }

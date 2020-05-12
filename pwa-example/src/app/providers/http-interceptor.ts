@@ -7,7 +7,7 @@ export class MyHttpInterceptor implements HttpInterceptor {
     constructor() { }
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        console.log("request intercepted successfully!", req);
+        console.info("[DEBUG] Request intercepted:", req);
         return next.handle(req);
     }
 }

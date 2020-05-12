@@ -13,9 +13,8 @@ import { ApiService } from 'src/app/providers/api.service';
     styleUrls: ['./map-view.component.scss']
 })
 export class MapViewComponent implements OnInit, OnDestroy {
-    @Output() storageUpdate = new EventEmitter();
+    @Output('storageUpdateEvent') storageUpdate = new EventEmitter();
     @ViewChild('map', { read: ElementRef, static: false }) mapElementRef: ElementRef;
-    accessToken = 'pk.eyJ1IjoiZmlubmphY2stZ2IiLCJhIjoiY2s3bmowbTJoMGUyajNsbTc5Y3ZhemtqNCJ9.qaNK4anI5YokbSKxUXpNWQ'; // openstreetmaps - tbd - remove
     loaded = false;
     mapElement: HTMLElement;
     map;
@@ -28,6 +27,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
     saveData;
     account;
     player;
+    playerRadius = 50; // metres
     playerJobsCollection;
     levelThresholds = [1000, 2500, 5000, 7500, 10000, 15000, 25000, 35000, 50000, 100000, 125000, 150000, 175000, 200000, 250000, 400000, 600000, 850000, 1000000];
 
@@ -43,7 +43,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
     });
     modalCommunicationSubject;
 
-    constructor(public modalCtrl: ModalController, public toastController: ToastController, private _router: Router, private _apiService: ApiService) {
+    constructor(public modalCtrl: ModalController, public toastCtrl: ToastController, private _router: Router, private _apiService: ApiService) {
         // create subject for game modal to ensure communication on modal destroy
         this.modalCommunicationSubject = new BehaviorSubject(null);
     }
@@ -54,7 +54,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     getPlayerData() {
-        console.log('setupPlayerData')
         // get data from storage
         this.saveData = JSON.parse(localStorage.getItem('saveData'));
         this.account = JSON.parse(localStorage.getItem('account'));
@@ -64,10 +63,8 @@ export class MapViewComponent implements OnInit, OnDestroy {
         this.playerJobsCollection = this.player['active-jobs'];
     }
 
-
     // store current data regarding available jobs
     save() {
-        console.log('save');
         this.player['active-jobs'] = this.playerJobsCollection;
         this.saveData.currentUser = this.player;
 
@@ -77,7 +74,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     async presentToast(message, duration, colour) {
-        const toast = await this.toastController.create({
+        const toast = await this.toastCtrl.create({
             message: message,
             duration: duration,
             color: colour,
@@ -86,12 +83,10 @@ export class MapViewComponent implements OnInit, OnDestroy {
         toast.present();
     }
 
-
     getLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
                 this.userLocation = new L.LatLng(position.coords.latitude, position.coords.longitude);
-                console.log(this.userLocation)
                 this.initializeMap();
             });
         } else {
@@ -99,14 +94,14 @@ export class MapViewComponent implements OnInit, OnDestroy {
         }
     }
 
-
     initializeMap(): void {
-        console.log("initializeMap");
+        // define basic options
         const options = {
             maxZoom: 15,
             minZoom: 13,
             zoomControl: false
         }
+
         // map instance
         this.map = new L.Map('map', options);
 
@@ -117,22 +112,15 @@ export class MapViewComponent implements OnInit, OnDestroy {
             maxZoom: 15
         }).addTo(this.map);
 
-        this.map.on('click', (event) => {
-            console.log("click", event);
-            var coord = (event as any).latlng;
-            var lat = coord.lat;
-            var lng = coord.lng;
-            console.log("You clicked the map at latitude: " + lat + " and longitude: " + lng);
-        });
-
+        // handle location events
         this.map.on('locationerror', (event) => {
             this.onLocationError(event);
         });
-
         this.map.on('locationfound', (event) => {
             this.onLocationFound(event);
         });
 
+        // wait for map ready before attempting to display user (can't find alternative)
         setTimeout(() => {
             this.showDeviceLocation();
             this.mapElement = this.mapElementRef.nativeElement;
@@ -142,26 +130,50 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     markLocations(): void {
-        console.log('markLocations');
         this.jobMarkers.forEach((marker) => {
             marker.remove();
-        })
+        });
+
         setTimeout(() => {
             let marker: L.Marker;
             this.jobMarkers = [];
+            let lastRemoteJob = null;
+
+            // iterate and create location markers for player jobs
             this.playerJobsCollection.forEach((job, idx) => {
-                console.log('markLocations', job);
-                let coords = (job.lat && job.lng) ? { lat: job.lat, lng: job.lng } : { lat: this.userLocation.lat, lng: this.userLocation.lng };
-                job.lat = coords.lat;
-                job.lng = coords.lng;
-                marker = L.marker([job.lat, job.lng], { icon: this.markerIcon }).on('click', () => { this.onMarkerClick(job, idx) }).addTo(this.map);
+                // check if job is remote
+                if (!(job.lat && job.lng)) {
+                    // only show last remote job to prevent overlay
+                    lastRemoteJob = { job: job, collectionId: idx };
+                    return;
+                }
+
+                marker = L.marker([job.lat, job.lng], {
+                    icon: L.divIcon({
+                        className: 'text-labels',
+                        html: '<p class="sender-labels-' + job.sender.toLowerCase() + '">' + job.sender.charAt(0).toUpperCase() + '</p>'
+                    }),
+                    zIndexOffset: 1000
+                }).on('click', () => { this.onMarkerClick(job, idx) }).addTo(this.map);
+
                 this.jobMarkers.push(marker);
             });
+
+            if (lastRemoteJob) {
+                marker = L.marker([this.userLocation.lat, this.userLocation.lng], {
+                    icon: L.divIcon({
+                        className: 'text-labels',
+                        html: '<p class="sender-labels-' + lastRemoteJob.job.sender.toLowerCase() + '">' + lastRemoteJob.job.sender.charAt(0).toUpperCase() + '</p>'
+                    }),
+                    zIndexOffset: 1000
+                }).on('click', () => { this.onMarkerClick(lastRemoteJob.job, lastRemoteJob.collectionId) }).addTo(this.map);
+
+                this.jobMarkers.push(marker);
+            }
         }, 500);
     }
 
     showDeviceLocation(): void {
-        console.log('showDeviceLocation');
         // setView once to get initial map location
         if (this.map) this.map.locate({ setView: true, watch: true });
         setTimeout(() => {
@@ -196,9 +208,9 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     clearWaypointMarkers() {
-        // route control appends 2 markers with void sources regardless of the success of its request - remove n amount that may have been added
+        // route control appends 2 markers with void sources regardless of the success of its request - remove any that may have been added
         let markers = Array.from(this.mapElement.querySelector('.leaflet-marker-pane').querySelectorAll('.leaflet-marker-icon'));
-        // collect all but splice actual player markers out to only remove the n that have been added from routing
+        // collect all but splice actual player markers out to only remove those that have been added from routing
         markers.splice(0, this.playerJobsCollection.length);
         markers.forEach((marker) => {
             marker.remove();
@@ -207,8 +219,9 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
     onMarkerClick(job, collectionIdx) {
         let content = this.createPopupContent(job, collectionIdx);
+        let coords = (job.lat && job.lng) ? { lat: job.lat, lng: job.lng } : { lat: this.userLocation.lat, lng: this.userLocation.lng };
         L.popup()
-            .setLatLng([job.lat, job.lng])
+            .setLatLng([coords.lat, coords.lng])
             .setContent(content).openOn(this.map);
     }
 
@@ -283,11 +296,12 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     removeJobFromCollection(id) {
-        console.log('removeJobFromCollection');
         this.playerJobsCollection.splice(id, 1);
     }
 
+    // tbd: create reusable popup component
     createPopupContent(job, collectionIdx) {
+        // create elements
         const container = document.createElement('div'),
             titleText = document.createElement('p'),
             senderText = document.createElement('p'),
@@ -297,33 +311,37 @@ export class MapViewComponent implements OnInit, OnDestroy {
             waypointBtn = document.createElement('ion-button'),
             playGameBtn = document.createElement('ion-button');
 
+        // assign style class
+        container.classList.add('popup-container');
+
+        // define content
         titleText.textContent = job.name;
         senderText.textContent = 'Sent by: ' + job.sender;
         rewardText.textContent = 'Rewards: £' + job.cash + '  /  XP: ' + job.experience;
         gameText.textContent = 'Plug-in: ' + (job.gameIdx < 2 ? 'blitz.exe' : 'fallproof.exe');
-
-        container.appendChild(titleText);
-        container.appendChild(senderText);
-        container.appendChild(rewardText);
-        container.appendChild(gameText);
-
         waypointBtn.textContent = 'Waypoint';
+        playGameBtn.textContent = 'Play';
+
+        // define button actions
+        waypointBtn.disabled = this.playerJobsCollection[collectionIdx].inRange;
         waypointBtn.onclick = () => {
             this.showWaypoint(job);
         }
 
-        playGameBtn.textContent = 'Play';
-        // playGameBtn.disabled = !this.playerJobsCollection[collectionIdx].inRange;
+        playGameBtn.disabled = !this.playerJobsCollection[collectionIdx].inRange;
         playGameBtn.onclick = () => {
             this.presentModal(job, collectionIdx);
             this.map.closePopup();
         }
 
+        // group elements
         btnContainer.appendChild(waypointBtn);
         btnContainer.appendChild(playGameBtn);
 
-        container.classList.add('popup-container');
-
+        container.appendChild(titleText);
+        container.appendChild(senderText);
+        container.appendChild(rewardText);
+        container.appendChild(gameText);
         container.appendChild(btnContainer);
 
         return container;
@@ -337,28 +355,26 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     onLocationFound(event) {
-        console.log(event.type);
         // capture location
         this.userLocation = new L.LatLng(event.latlng.lat, event.latlng.lng);
 
         this.clearCircles();
-        this.addCircle(event.latlng, 50);
+        this.addCircle(event.latlng, this.playerRadius);
 
         this.checkRangeFromLocations();
     }
 
     checkRangeFromLocations() {
-        console.log('checkRangeFromLocations');
         this.playerJobsCollection.forEach((job, idx) => {
-            let coords = new L.LatLng(job.lat, job.lng);
-            const distanceMeters = Math.round(this.userLocation.distanceTo(coords) * 1e2) / 1e2;
-            job.inRange = distanceMeters <= 50 ? true : false; // user must be within 50m of job location
+            let coords = (job.lat && job.lng) ? { lat: job.lat, lng: job.lng } : { lat: this.userLocation.lat, lng: this.userLocation.lng };
+            let latlng = new L.LatLng(coords.lat, coords.lng);
+            const distanceMeters = Math.round(this.userLocation.distanceTo(latlng) * 1e2) / 1e2;
+            job.inRange = distanceMeters <= this.playerRadius ? true : false; // user must be within 50m of job location
         });
     }
-    iframeSrc;
+
     handleRoutingError(event) {
         console.error(event);
-        this.iframeSrc = event.error.url;
         this.presentToast('Error finding route', 2000, 'danger');
     }
 
@@ -374,7 +390,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
                 styles: [{ color: 'purple', opacity: 1, weight: 5 }]
             }
         }).on('routingerror', (e) => {
-            console.log('routingerror');
             this.handleRoutingError(e);
         }).addTo(this.map);
     }
@@ -395,7 +410,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     clearCircles() {
-        console.log('clearCircles')
         if (this.circles) {
             this.circles.forEach((circle) => {
                 circle.remove();
@@ -405,7 +419,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     destroy() {
-        console.log('destroy');
         return new Promise((resolve) => {
             this.map.stopLocate();
             this.map.remove();
@@ -416,7 +429,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     async ngOnDestroy() {
-        console.log('ngOnDestroy');
         // calls may be triggered before destroy - check map first
         if (this.map) await this.destroy();
     }

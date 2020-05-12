@@ -24,7 +24,7 @@
                         ],
                         "messages": [
                             "There's a big data transfer scheduled to happen soon. It would be beneficial to some associates of mines if the data could somehow disappear, or become unreadable in some way. I need you to get over there and prevent that transfer somehow!",
-                            "So, you like freedom right? You want to keep it right? Okay, well, all you have to do is mess with a little file transfer scheduled to happen soon and nothing has to change. I've attached the location, get it done.",
+                            "So, you like freedom right? You want to keep it right? Well all you have to do is mess with a little file transfer scheduled to happen soon and nothing has to change. I've attached the location, get it done.",
                             "Some folks downtown are trying to push through a business deal that would be bad for a few friends of ours, I need you to mess with the bank transfer and make sure the deal doesn't happen. It should be happening soon so get on it!"
                         ]
                     }
@@ -38,9 +38,9 @@
                             "Reacquisition"
                         ],
                         "messages": [
-                            "I have a job for you. I need you to go to the location attached to this message and gain access to the network and recover some files for me. Don't worry what they are, just get them back and you'll be rewarded.",
-                            "A friend of mine needs a favour. One of his goons got caught with some sensitive data on them, it's now currently sitting on the desktop of some idiot in blue, get it back and you'll be handsomely rewarded. I don't care how you do it, just get it done.",
-                            "Hope you're not busy right now, because I need you to get some less than legal documents back from a government server for me. Get in to the system, grab the files, get out, easy. Hurry up too, it's kind of important, like, prison important."
+                            "I have a job for you. I need you to go to gain access to a network and recover some files for me. Don't worry what they are, just get them back and you'll be rewarded.",
+                            "A friend of mine needs a favour. One of his goons got caught with some sensitive documents on them, they're now sitting on the desktop of some idiot in blue, get it back and you'll be handsomely rewarded. I don't care how you do it, just get it done.",
+                            "I hope you're not busy right now, because I need you to get some documents back from a government server for me. Get in to the system, grab the files, get out, easy. Hurry up too, it's kind of important, like, prison important."
                         ]
                     }
                 }
@@ -78,8 +78,8 @@
                             "Scrubbed"
                         ],
                         "messages": [
-                            "You don't know me, but that's okay, you don't need to. There's an officer in possession of something I really don't need getting out, they're due to send it to their boss soon, I need you to stop that happening. Think you can handle it?",
-                            "I heard you're good with computers, so I have a problem that I need taking care of. I want you to interfer with a file transfer that's happening soon, I've sent the network location with this message, let's see how good you are.",
+                            "You don't know me, but that's okay, you don't need to. There's an officer in possession of something that can't get out, they're due to send it to their boss soon, I need you to stop that happening. Think you can handle it?",
+                            "I have a problem that I need you to take care of. I want you to interfer with a file transfer that's happening soon, I've sent the network location with this message, let's see how good you are.",
                             "Problem. Now. Fix. Money."
                         ]
                     }
@@ -93,9 +93,9 @@
                             "Espionage"
                         ],
                         "messages": [
-                            "Some files have been stolen from me, you're going to get them back. There's a location with this message, do this and you'll be rewarded, fail and my faith in you may dwindle, you don't want that.",
-                            "I need you to get some information from the computer of a dead man, well he's not dead yet, but he will be if those files aren't there like he's saying. It's your lucky day, you may get to save a life.",
-                            "I know we don't know each other but its best for us both if you just do what I say. I need you to sneak into this network and recover some files for me, you'll get paid don't worry."
+                            "Some files have been stolen from me, you're going to get them back. Do this and you'll be rewarded, fail and my faith in you may dwindle, you don't want that.",
+                            "I need you to get some information from the computer of a dead man, well he's not dead yet, but he will be if those files aren't where he's saying. It's your lucky day, you get to save a life.",
+                            "I know we don't know each other but its better if you just do what I say. I need you to sneak into a network and recover some files for me, you'll get paid don't worry."
                         ]
                     }
                 }
@@ -112,14 +112,14 @@
         },
         {
             "name": "Victor",
-            "unlocksAt": 3,
+            "unlocksAt": 2,
             "greetings": [
                 "Hello my friend, it's Victor.",
                 "It's Victor, how are you today?",
                 "Hey it's Victor, I need some help."
             ],
             "signoffs": [
-                "Please can you help me?",
+                "Can you help me?",
                 "I really need this done, please my friend.",
                 "Thank you my friend."
             ],
@@ -128,14 +128,14 @@
                     "name": "blitz",
                     "issue": {
                         "subjects": [
-                            "Clear out",
+                            "Clear Out",
                             "Disruption",
                             "Spring Cleaning"
                         ],
                         "messages": [
                             "Someone's out to get me! They're saying they have proof of some things I never done! Honest! I don't know what they have but they're sending it to the papers any minute now! Please is there anything you can do?",
-                            "I have a little problem with a so called journalist in town, they're trying to ruin my reputation because of something I did when I was drunk! I don't even remember doing it! But, maybe you could interfer when they send them to their boss anyway? Better to be safe, eh.",
-                            "I hate this stinking town! You try to do the right thing and they want more! Always more! I'm done paying bribes, I need you to interfer with this file transfer supposedly happening soon, that'll show them."
+                            "I have a little problem with a so called journalist in town, they're trying to ruin my reputation because of something I did when I was drunk! I don't even remember doing it! But, maybe you could interfer when they send the files to their boss anyway? Better to be safe, eh.",
+                            "I hate this stinking town! You try to do the right thing and they want more! Always more! I'm done paying bribes, I need you to interfer with this file transfer that's happening soon, that'll show them."
                         ]
                     }
                 },
@@ -148,9 +148,9 @@
                             "Sneaky"
                         ],
                         "messages": [
-                            "I need you to help get some things back for me. This cop thinks he can just arrest my guys and steal things from me! Unbelievable. I've sent the details, can you get it back for me?",
+                            "I need you to help get some things back for me. This cop thinks he can just arrest my guys and steal things from me! Unbelievable. I've sent the details, can you get them back?",
                             "So, it's like this, someone disappeared and some fingers got pointed, now I never did nothing, but I know how to prove who did. Can you recover some files for me, I'll make sure you're rewarded.",
-                            "I got something I need you to do, please my friend, it's important to me. There's some business files of a company downtown, I need to get hold of them ASAP. It's not important why, just important it's done."
+                            "I got something I need you to do, please my friend, it's important to me. There's some business files belonging to a company downtown, I need to get hold of them ASAP. It's not important why, just important it's done."
                         ]
                     }
                 }
@@ -167,7 +167,7 @@
         },
         {
             "name": "Mel",
-            "unlocksAt": 2,
+            "unlocksAt": 3,
             "greetings": [
                 "Hey sweet.",
                 "Hey, it's Mel.",
@@ -188,9 +188,9 @@
                             "Screw That"
                         ],
                         "messages": [
-                            "I really need some help with a problem. Someone's stolen my designs and has been selling them online, I think they're receiving a payment for the biggest piece soon, can you mess up the transfer for me? This is so unfair!",
-                            "So I have this issue, some guy hasn't paid for some work I did for him, and now I've found out he's trying to sell everything and run off. If I'm not getting anything, neither is he! Mess up the wire transfer, he has to pay!",
-                            "I need help with a thing. I did some designs for this company, who sent them back, saying they didn't want them. Then I see them using it all over the website! People are spending money on their site right now! Can you mess around with their network, screw up some payments for me?"
+                            "I really need some help with a problem. Someone's stolen my designs and has been selling them online, They're receiving a payment for the biggest piece soon, can you mess up the transfer for me? This is so unfair!",
+                            "So I have this issue, some guy hasn't paid for some work I did for him, and now I've found out he's trying to sell everything and run off. If I'm not getting anything, neither is he! Can you mess up the wire transfer, he has to pay!",
+                            "I need help with a thing. I did some designs for this company, who sent them back, saying they didn't want them. Then I see them using it all over the website! People are spending money on their site right now! Can you mess around with their network, screw stuff up for me?"
                         ]
                     }
                 },
@@ -204,7 +204,7 @@
                         ],
                         "messages": [
                             "Can you help me? Someone I know came in today and literally just stole my laptop, it's got all my recent designs on, some of them already paid for. I've sent their address, I don't care about the laptop, I just need those designs back, please help.",
-                            "So, I need a favour. I took a load of reference photos for some work I'm doing, and now an ex friend of mine has came into the shop and taken my camera, and says they won't give it back unless I pay her money! Can you get them back somehow?",
+                            "So, I need a favour. I took a load of reference photos for some work I'm doing, and some ex friend of mine just came into the shop and took my camera, and says they won't give it back unless I pay her money! Can you get them back somehow?",
                             "I need help with this thing. I accidently left my bag at some house in the city after a party. Thing is, it had my laptop in it with some work that I really need back. I know the address but...I kinda got thrown out...I don't care about the laptop, can you just get the designs back?"
                         ]
                     }
@@ -218,7 +218,62 @@
                 "min": 500,
                 "max": 800
             },
-            "colour": "purple"
+            "colour": "rebeccapurple"
+        },
+        {
+            "name": "Biggs",
+            "unlocksAt": 1,
+            "greetings": [
+                "Ez man it's Biggs.",
+                "Yo it's Biggs.",
+                "Hey bro it's Biggs."
+            ],
+            "signoffs": [
+                "Cheers man",
+                "Thanks bro",
+                "Nice one man"
+            ],
+            "problems": [
+                {
+                    "name": "blitz",
+                    "issue": {
+                        "subjects": [
+                            "No Quarter",
+                            "Stolen",
+                            "Ain't Nothing"
+                        ],
+                        "messages": [
+                            "Some guys are trying to shift a bunch of weapons they stole from some friends of mine. They gonna get what's coming to them real soon, but I need you to mess up the wire transfer in the meantime. I've sent the details.",
+                            "This guy's got hold of some documents belonging to an associate of mine, they're supposedly due to send them to someone soon. I don't know who, but that can't happen, I need you to prevent that please mate.",
+                            "So apparently this guy has some files on us, I don't know what but he says he's sending them to the police if we don't pay him. Now, we ain't paying, so I need you to mess up the transfer if he tries anything."
+                        ]
+                    }
+                },
+                {
+                    "name": "fallproof",
+                    "issue": {
+                        "subjects": [
+                            "The Dirt",
+                            "Helping Hand",
+                            "Get Ahead"
+                        ],
+                        "messages": [
+                            "Need a favour man, this rat has some dirt on us, and we need to get it back sharp. I need you to get into his stuff and get it somehow man, do your thing init. This is important man.",
+                            "This guy's gonna give us some information that is really gonna help our business downtown. Thing is, he really can't know about it. I need you to get it into his system and grab it. I've sent details.",
+                            "Really need a solid here bro. Some copper's been staking out a front of ours, we've known since day one so everything should be fine, but we just wanna know what they've got on us. Dig around and just grab anything you find."
+                        ]
+                    }
+                }
+            ],
+            "cash": {
+                "min": 500,
+                "max": 1500
+            },
+            "exp": {
+                "min": 500,
+                "max": 1000
+            },
+            "colour": "deepskyblue"
         }
     ]
 }

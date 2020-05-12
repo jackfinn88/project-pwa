@@ -1,17 +1,18 @@
 import "phaser";
 export class GameScene extends Phaser.Scene {
     delta: number;
-    lastFileTime: number;
-    filesCaught: number;
-    filesFallen: number;
-    fileVelocity: number;
+    lastPacketTime: number;
+    packetsCaught: number;
+    packetsFallen: number;
+    packetVelocity: number;
+    packetsPerHit: number;
     ground: Phaser.Physics.Arcade.StaticGroup;
 
-    filesNeeded: number;
-    maxFilesFallen: number;
+    packetsNeeded: number;
+    maxPacketsFallen: number;
     firstUpdate = true;
     gameOver = false;
-    files = [];
+    packets = [];
 
     constructor() {
         super({
@@ -21,13 +22,15 @@ export class GameScene extends Phaser.Scene {
 
     init(): void {
         let options = (this.game as any).options;
+        console.log(options)
         this.delta = 1000;
-        this.lastFileTime = 0;
-        this.filesCaught = 0;
-        this.filesFallen = 0;
-        this.filesNeeded = options.catch;
-        this.maxFilesFallen = options.lose;
-        this.fileVelocity = options.fileVelocity;
+        this.lastPacketTime = 0;
+        this.packetsCaught = 0;
+        this.packetsFallen = 0;
+        this.packetsNeeded = options.catch;
+        this.maxPacketsFallen = options.lose;
+        this.packetVelocity = options.packetVelocity;
+        this.packetsPerHit = options.packetsPerHit
     }
 
     preload(): void {
@@ -50,82 +53,83 @@ export class GameScene extends Phaser.Scene {
 
         if (this.gameOver) return;
 
-        var diff: number = time - this.lastFileTime;
+        var diff: number = time - this.lastPacketTime;
         if (diff > this.delta) {
-            this.lastFileTime = time;
+            this.lastPacketTime = time;
             if (this.delta > 500) {
                 this.delta -= 20;
             }
-            this.emitFile();
+            this.emitPacket();
         }
     }
 
-    private onClick(file: Phaser.Physics.Arcade.Image) {
+    private onClick(packet: Phaser.Physics.Arcade.Image) {
         if (this.gameOver) return;
 
-        file.setTint(0x00ff00);
-        file.setVelocity(0, 0);
-        this.filesCaught += 1;
+        packet.setTint(0x00ff00);
+        packet.setVelocity(0, 0);
+        if (this.packetsCaught + this.packetsPerHit > this.packetsNeeded) this.packetsCaught = this.packetsNeeded
+        else this.packetsCaught += this.packetsPerHit;
 
         this.game.events.emit('game-event', {
             end: this.gameOver,
             stats: {
                 'win': false,
-                'caught': this.filesCaught,
-                'lost': this.filesFallen
+                'caught': this.packetsCaught,
+                'lost': this.packetsFallen
             }
         });
 
-        this.time.delayedCall(100, (file) => {
-            file.destroy();
-            if (this.filesCaught >= this.filesNeeded) {
+        this.time.delayedCall(100, (packet) => {
+            packet.destroy();
+            if (this.packetsCaught >= this.packetsNeeded) {
                 if (!this.gameOver) {
                     this.gameWin();
                 }
             }
-        }, [file], this);
+        }, [packet], this);
 
     }
 
-    private onFall(file: Phaser.Physics.Arcade.Image) {
+    private onFall(packet: Phaser.Physics.Arcade.Image) {
         if (this.gameOver) return;
 
-        file.setTint(0xff0000);
-        this.filesFallen += 1;
+        packet.setTint(0xff0000);
+        this.packetsFallen += 1;
 
         this.game.events.emit('game-event', {
             end: this.gameOver,
             stats: {
                 'win': false,
-                'caught': this.filesCaught,
-                'lost': this.filesFallen
+                'caught': this.packetsCaught,
+                'lost': this.packetsFallen
             }
         });
 
-        this.time.delayedCall(100, (file) => {
-            file.destroy();
-            if (this.filesFallen >= this.maxFilesFallen) {
+        this.time.delayedCall(100, (packet) => {
+            packet.destroy();
+            if (this.packetsFallen >= this.maxPacketsFallen) {
                 if (!this.gameOver) {
                     this.gameLose();
                 }
             }
-        }, [file], this);
+        }, [packet], this);
 
     }
 
-    private emitFile(): void {
+    private emitPacket(): void {
         if (this.gameOver) return;
 
-        var file: Phaser.Physics.Arcade.Image;
+        var packet: Phaser.Physics.Arcade.Image;
         var x = Phaser.Math.Between(25, 775);
         var y = 26;
-        file = this.physics.add.image(x, y, "file");
-        file.setDisplaySize(50, 50);
-        file.setVelocity(0, this.fileVelocity);
-        file.setInteractive();
-        file.on('pointerdown', () => { this.onClick(file) });
-        this.physics.add.collider(file, this.ground,
-            () => { this.onFall(file) }, null, this);
+        packet = this.physics.add.image(x, y, "file");
+        packet.setDisplaySize(70, 70);
+        packet.setVelocity(0, this.packetVelocity);
+        packet.setInteractive();
+        packet.on('pointerdown', () => { this.onClick(packet) });
+        this.physics.add.collider(packet, this.ground,
+            () => { this.onFall(packet) }, null, this);
     }
 
     // clear timers and emit game win event
@@ -137,8 +141,8 @@ export class GameScene extends Phaser.Scene {
                 end: this.gameOver,
                 stats: {
                     'win': true,
-                    'caught': this.filesCaught,
-                    'lost': this.filesFallen
+                    'caught': this.packetsCaught,
+                    'lost': this.packetsFallen
                 }
             });
         }
@@ -153,8 +157,8 @@ export class GameScene extends Phaser.Scene {
                 end: this.gameOver,
                 stats: {
                     'win': false,
-                    'caught': this.filesCaught,
-                    'lost': this.filesFallen
+                    'caught': this.packetsCaught,
+                    'lost': this.packetsFallen
                 }
             });
         }

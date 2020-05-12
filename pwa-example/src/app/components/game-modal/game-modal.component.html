@@ -5,7 +5,7 @@
                 <ion-icon name="arrow-back"></ion-icon>
             </ion-button>
         </ion-buttons>
-        <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
+        <ion-title><span style="color: #fff;">port</span><span style="color: #f90;">hub</span></ion-title>
     </ion-toolbar>
 </ion-header>
 
@@ -50,7 +50,7 @@
                     <div *ngSwitchCase="'fallproof'">Extract the files and get out of the system. Move by destroying
                         blocks of the same colour and rotating the view to manouver yourself. Land from above to capture
                         the files.</div>
-                    <div *ngSwitchCase="'blitz'">Corrupt files by tapping and destroying the data packets
+                    <div *ngSwitchCase="'blitz'">Corrupt file transfers by tapping and destroying the data packets
                         before they reach the server.
                         Disrupt enough of the transfer before they upload what they need.</div>
                 </div>
@@ -88,9 +88,9 @@
                 <ion-button (click)="onTestButtonClick()">TEST</ion-button>
                 <!--REMOVE-->
 
-                <p>Corrupted: {{ ((uiData.caught * 64) / 1000).toFixed(2) }} / {{ uiData.corrupt.toFixed(2) }}Mb</p>
+                <p>Corrupted: {{ ((uiData.caught * 128) / 1000).toFixed(2) }} / {{ uiData.corrupt.toFixed(2) }}Mb</p>
                 <ion-progress-bar color="success" [value]="uiData.caughtProgress"></ion-progress-bar>
-                <p>Complete: {{ ((uiData.lost * 64) / 1000).toFixed(2) }} / {{ uiData.complete.toFixed(2) }}Mb</p>
+                <p>Complete: {{ ((uiData.lost * 128) / 1000).toFixed(2) }} / {{ uiData.complete.toFixed(2) }}Mb</p>
                 <ion-progress-bar color="danger" [value]="uiData.lostProgress"></ion-progress-bar>
             </div>
             <div id="game"></div>

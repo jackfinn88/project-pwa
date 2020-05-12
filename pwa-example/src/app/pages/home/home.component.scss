@@ -35,6 +35,10 @@ strong {
     vertical-align: top;
 }
 
+img {
+    height: 42px;
+}
+
 @media all and (orientation:landscape) {
     ion-content {
         --padding-top: 5% !important;

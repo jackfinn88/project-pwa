@@ -19,7 +19,7 @@ export class JobsComponent implements OnInit, OnDestroy {
     maxJobAllowed = 5;
     // flag whether max has been reached
     maxJobsReached;
-    // current collection
+    // current collection of available jobs
     availableJobsCollection = [];
     // timer to update remaining time
     updateInterval;
@@ -37,11 +37,11 @@ export class JobsComponent implements OnInit, OnDestroy {
     playerData;
     // save data
     saveData;
-    // player's job collection
+    // player's active job collection
     playerJobsCollection = [];
     // to use Math within html data-binding
     math = Math;
-    // data-binding to ion-segment value
+    // data-binding to direct ion-segments default value
     segment = 'available';
 
     constructor(public toastController: ToastController, public modalController: ModalController, private _location: Location, private _jobService: JobsService, private _cdr: ChangeDetectorRef) {
@@ -54,7 +54,7 @@ export class JobsComponent implements OnInit, OnDestroy {
 
         this.maxJobsReached = this.availableJobsCollection.length < this.maxJobAllowed ? false : true;
 
-        this.checkJobRenewal();
+        this.checkPastJobRenewal();
 
         // begin update loop
         this.updateInterval = setInterval(() => {
@@ -77,14 +77,24 @@ export class JobsComponent implements OnInit, OnDestroy {
     }
 
     // check past duration until next job
-    checkJobRenewal() {
-        if (this.availableJobsCollection.length < this.maxJobAllowed) {
-            let currentTime = Date.now();
-            let remaining = this.nextJobRenewal - currentTime;
-            let countdown = remaining > 0 ? remaining : 0;
+    checkPastJobRenewal() {
+        let currentTime = Date.now();
+        let remaining = this.nextJobRenewal - currentTime;
+        let countdown;
+        if (remaining > 0) {
+            // renewal still in process
+            countdown = remaining;
+        } else {
+            // renewal expired - create now
+            countdown = 1250;
 
-            this.beginRenewal(countdown);
+            // wait over 1000ms for first updateAvailableJobs loop to remove expired jobs
+            // job creation will initially be blocked if collection shows the maximum of 5
+            // yet they could all potentially be removed after the first loop due to expirations
+            // resulting in no new job until after normal renewal process of 20-40 mins
         }
+
+        this.beginRenewal(countdown);
     }
 
     // begin countdown until next job
@@ -95,7 +105,6 @@ export class JobsComponent implements OnInit, OnDestroy {
         this.nextJobRenewal = Date.now() + countdown;
 
         if (!this.renewalInProcess) {
-            // this.countdown = Math.floor(countdown / 1000);
             this._cdr.detectChanges(); // required for updating view of data-binding
             // show countdown
             this.countdownTimer = setInterval(() => {
@@ -113,9 +122,7 @@ export class JobsComponent implements OnInit, OnDestroy {
                 clearInterval(this.countdownTimer);
 
                 // create job if still required
-                if (this.availableJobsCollection.length < this.maxJobAllowed) {
-                    this.createJob();
-                }
+                if (this.availableJobsCollection.length < this.maxJobAllowed) this.createJob();
             }, countdown);
         }
     }
@@ -142,7 +149,7 @@ export class JobsComponent implements OnInit, OnDestroy {
                 this.maxJobsReached = false;
                 this._cdr.detectChanges();
                 let milliseconds = { min: 6000, max: 9000 }; // 6-9s testing - tbd: remove
-                // let milliseconds = { min: 600000, max: 900000 }; // 10-15mins
+                // let milliseconds = { min: 420000, max: 840000 }; // 7-14 mins
                 let duration = this.getRandomIntInclusive(milliseconds.min, milliseconds.max);
                 this.beginRenewal(duration);
             }
@@ -200,8 +207,8 @@ export class JobsComponent implements OnInit, OnDestroy {
 
                 // gather time data (how long job is available)
                 let currentTime = Date.now();
-                let milliseconds = { min: 60000, max: 90000 }; // 60-90s testing - tbd: remove
-                // let milliseconds = { min: 2.4e+6, max: 4.8e+6 }; // 40-80 mins
+                let milliseconds = { min: 30000, max: 60000 }; // 18-38s testing - tbd: remove
+                // let milliseconds = { min: 1.2e+6, max: 2.1e+6 }; // 20-35 mins
                 let duration = this.getRandomIntInclusive(milliseconds.min, milliseconds.max);
 
                 // find available characters for player level
@@ -320,9 +327,9 @@ export class JobsComponent implements OnInit, OnDestroy {
     }
 
     // find random latlng within given radius (without using map component) - https://stackoverflow.com/a/31280435/10166336
-    randomLatLng(center, radius) {
-        var y0 = center.lat;
-        var x0 = center.lng;
+    randomLatLng(centre, radius) {
+        var y0 = centre.lat;
+        var x0 = centre.lng;
         var rd = radius / 111300; // about 111300 meters in one degree
 
         var u = Math.random();

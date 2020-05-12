@@ -5,11 +5,11 @@
                 <ion-icon name="arrow-back"></ion-icon>
             </ion-button>
         </ion-buttons>
-        <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
+        <ion-title><span style="color: #fff;">port</span><span style="color: #f90;">hub</span></ion-title>
     </ion-toolbar>
 </ion-header>
 
-<app-statbar [user]="player.user" [cash]="player.cash" [webcash]="player.webcash" [exp]="player.level">
+<app-statbar [user]="player.user" [cash]="player.cash" [webcash]="player.webcash" [level]="player.level">
 </app-statbar>
 
 <ion-content>
@@ -19,7 +19,7 @@
 
     <div class="inner-content">
         <div class="map-view-container">
-            <app-map-view (storageUpdate)="updateStats($event)">
+            <app-map-view (storageUpdateEvent)="updateStats($event)">
             </app-map-view>
         </div>
     </div>

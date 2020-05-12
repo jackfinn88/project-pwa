@@ -14,12 +14,12 @@ export class InventoryComponent implements OnInit {
     availablePlugins;
     pluginKeys;
     parseInt = parseInt;
-    prices = [5000, 10000, 20000];
+    prices = [2500, 5000, 10000];
     descriptions = [
-        "Double Data Per Hit",
+        "Increase Data Corruption",
         "Descrease Transfer Speed",
         "Increase Time in Networks",
-        "More Available Rotations"
+        "Increase Available Rotations"
     ]
 
     constructor(private _location: Location, private _apiService: ApiService, private alertCtrl: AlertController, private _cdr: ChangeDetectorRef) { }
@@ -107,6 +107,8 @@ export class InventoryComponent implements OnInit {
     confirmDualPurchase(pluginIdx, amount) {
         this.availablePlugins[pluginIdx]["dual-use"] = 1;
         this.player.cash -= amount;
+
+        this.updateRecord();
     }
 
     onToggleChange(pluginIdx, upgradeIdx) {
@@ -117,7 +119,7 @@ export class InventoryComponent implements OnInit {
 
         // can player use both upgrades?
         if (!parseInt(this.availablePlugins[pluginIdx]["dual-use"], 10)) {
-            // if not - check if other upgrade is active
+            // if not - check whether other upgrade is active
             if (this.availablePlugins[pluginIdx].upgrades[otherIdx].active) {
                 // toggle not ok - ask to purchase dual-use
                 let amount = this.prices[1];
@@ -165,7 +167,6 @@ export class InventoryComponent implements OnInit {
             this.player["game-data"][this.pluginKeys[idx]] = plugin;
         });
         this.saveData.currentUser = this.player;
-        console.log(this.saveData.currentUser["game-data"]);
 
         // update database
         let record = {
@@ -199,8 +200,6 @@ export class InventoryComponent implements OnInit {
             lto_music: this.account["lto_music"],
             lto_difficulty: this.account["lto_difficulty"]
         }
-
-        console.log('record:update', record)
 
         this._apiService.updateRecord(record).subscribe((record) => {
             // update device accounts

@@ -8,7 +8,7 @@
     "start_url": "./",
     "icons": [
         {
-            "src": "assets/icons/port-hub-512.png",
+            "src": "assets/icons/hub-512-final.png",
             "sizes": "512x512",
             "type": "image/png"
         }

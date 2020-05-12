@@ -28,7 +28,6 @@ export class TransferComponent implements OnInit {
     }
 
     updateAmounts() {
-        console.log('updateAmounts');
         this.availableAmounts = [];
 
         if (!this.saveData.currentUser.cash) return;
@@ -45,8 +44,7 @@ export class TransferComponent implements OnInit {
     }
 
     onTransferItemClick(event) {
-        console.log('onTransferItemClick', event);
-        // transfer amount from cash to webcash
+        // transfer amount from cash to LTOcash
         let amount = parseInt(event.target.textContent, 10);
         this.presentAlertConfirm(amount);
 
@@ -85,8 +83,6 @@ export class TransferComponent implements OnInit {
             lto_difficulty: this.account["lto_difficulty"]
         }
 
-        console.log('record:update', record)
-
         this._apiService.updateRecord(record).subscribe((record) => {
             // update device accounts
             let accountIdx = this.saveData.accounts.findIndex(account => account.id === this.saveData.currentUser.id);
@@ -110,14 +106,10 @@ export class TransferComponent implements OnInit {
             buttons: [
                 {
                     text: 'Cancel',
-                    role: 'cancel',
-                    handler: (blah) => {
-                        console.log('Confirm Cancel: blah');
-                    }
+                    role: 'cancel'
                 }, {
                     text: 'Confirm',
                     handler: () => {
-                        console.log('Confirm Okay');
                         this.confirmTransfer(amount);
                     }
                 }

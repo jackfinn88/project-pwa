@@ -5,12 +5,12 @@
                 <ion-icon name="arrow-back"></ion-icon>
             </ion-button>
         </ion-buttons>
-        <ion-title><span style="color: #fff;">Port</span><span style="color: #f90;">Hub</span></ion-title>
+        <ion-title><span style="color: #fff;">port</span><span style="color: #f90;">hub</span></ion-title>
     </ion-toolbar>
 </ion-header>
 
 <app-statbar [user]="saveData.currentUser.user" [cash]="saveData.currentUser.cash"
-    [webcash]="saveData.currentUser.webcash" [exp]="saveData.currentUser.level">
+    [webcash]="saveData.currentUser.webcash" [level]="saveData.currentUser.level">
 </app-statbar>
 
 <ion-content>
@@ -20,7 +20,7 @@
 
     <div *ngIf="loaded" class="content">
         <div class="page-description">
-            <h1>Review and Accept Jobs</h1>
+            <h2>Review and Accept Jobs</h2>
             <p>Messages appear here (5 max)</p>
         </div>
 
@@ -82,5 +82,5 @@
         </div>
     </div>
 
-    <div class="footer">2020 (Next Level Games)</div>
+    <div class="footer">2020 NEXT LEVEL GAMES</div>
 </ion-content>
