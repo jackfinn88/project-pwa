@@ -31,11 +31,8 @@ export class LoginComponent implements OnInit {
 
             this.apiService.verifyUser(record).subscribe((record) => {
                 if (record) {
-                    console.log("User verified: ", record);
-
                     this.onVerify.emit(record);
                 } else {
-                    console.log("User not verified");
                     // not verified/try again
                     this.onVerify.emit(false);
                 }
