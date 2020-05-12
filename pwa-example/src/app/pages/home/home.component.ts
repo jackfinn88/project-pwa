@@ -24,7 +24,6 @@ export class HomeComponent implements OnInit {
     constructor(public modalCtrl: ModalController, public toastCtrl: ToastController) { }
 
     ngOnInit() {
-        console.log('ngOnInit');
         this.saveData = JSON.parse(localStorage.getItem('saveData'));
 
         if (this.saveData) {
@@ -63,29 +62,7 @@ export class HomeComponent implements OnInit {
         toast.present();
     }
 
-    async presentModal(job: any) {
-        console.log('presentModal', job)
-        const modal = await this.modalCtrl.create({
-            component: GameModalComponent,
-            componentProps: {
-                'job': job
-            },
-            cssClass: 'game-modal',
-            animated: false,
-        });
-
-        modal.onDidDismiss().then((data) => {
-            if (data.data) {
-                let response = data.data as any;
-                console.log(response);
-            }
-        });
-
-        return await modal.present();
-    }
-
     toggleForm() {
-        console.log(this.toggleButton);
         this.showLoading = true;
         setTimeout(() => {
             if (this.formView === 'login') {
@@ -100,8 +77,6 @@ export class HomeComponent implements OnInit {
     }
 
     onLogin(user) {
-        console.log('onLogin', user);
-
         if (user) {
             this.showForms = false;
             this.showLoading = true;
@@ -201,8 +176,6 @@ export class HomeComponent implements OnInit {
     }
 
     onRegistration(user) {
-        console.log('onRegistration', user);
-
         if (user) {
             this.showForms = false;
             this.showLoading = true;

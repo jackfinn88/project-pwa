@@ -66,8 +66,6 @@ export class RegistrationComponent implements OnInit {
 
             this.apiService.createRecord(record).subscribe((record) => {
                 if (record) {
-                    console.log("Record created, ", record);
-
                     this.onCreate.emit(record);
                 }
             });

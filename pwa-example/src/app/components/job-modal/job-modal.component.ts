@@ -25,7 +25,6 @@ export class JobModalComponent implements OnInit {
         this.jobId = parseInt(this._navParams.get('id'), 10);
         this.view = this._navParams.get('view');
         this.canAdd = this._navParams.get('can-add');
-        console.log(this.job, this.jobId);
 
         // reverse-engineer for real date
         let dateFromCreated = new Date(this.job.created);
