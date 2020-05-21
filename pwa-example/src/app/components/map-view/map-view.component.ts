@@ -30,21 +30,10 @@ export class MapViewComponent implements OnInit, OnDestroy {
     playerRadius = 50; // metres
     playerJobsCollection;
     levelThresholds = [1000, 2500, 5000, 7500, 10000, 15000, 25000, 35000, 50000, 100000, 125000, 150000, 175000, 200000, 250000, 400000, 600000, 850000, 1000000];
-
-    // custom icon
-    markerIcon = L.icon({
-        iconUrl: 'assets/icons/custom/map-marker.png',
-        shadowUrl: 'assets/icons/custom/map-marker-shadow.png',
-
-        iconSize: [30, 45], // size of the icon
-        shadowSize: [42, 34], // size of the shadow
-        iconAnchor: [15, 45], // point of the icon which will correspond to marker's location
-        shadowAnchor: [4, 34],  // the same for the shadow
-    });
     modalCommunicationSubject;
 
     constructor(public modalCtrl: ModalController, public toastCtrl: ToastController, private _router: Router, private _apiService: ApiService) {
-        // create subject for game modal to ensure communication on modal destroy
+        // create subject for game modal to subscribe to - ensuring communication prior to modal destroy
         this.modalCommunicationSubject = new BehaviorSubject(null);
     }
 
@@ -59,12 +48,12 @@ export class MapViewComponent implements OnInit, OnDestroy {
         this.account = JSON.parse(localStorage.getItem('account'));
         this.player = this.saveData.currentUser;
 
-        // extract data
+        // extract player job data
         this.playerJobsCollection = this.player['active-jobs'];
     }
 
-    // store current data regarding available jobs
     save() {
+        // store current data regarding available jobs
         this.player['active-jobs'] = this.playerJobsCollection;
         this.saveData.currentUser = this.player;
 
@@ -120,7 +109,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
             this.onLocationFound(event);
         });
 
-        // wait for map ready before attempting to display user (can't find alternative)
+        // wait for map ready before attempting to display user (can't currently find alternative to timeout)
         setTimeout(() => {
             this.showDeviceLocation();
             this.mapElement = this.mapElementRef.nativeElement;
@@ -174,9 +163,12 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     showDeviceLocation(): void {
-        // setView once to get initial map location
+        // locate with 'setView' once to get initial map tile for location
         if (this.map) this.map.locate({ setView: true, watch: true });
+
+        // breifly wait ensuring map UI view has been initialised/rendered
         setTimeout(() => {
+            // restart without 'setView' to prevent 'watch' from also resetting map UI view on latlng changes
             if (this.map) this.map.stopLocate();
             if (this.map) this.map.locate({ watch: true });
         }, 1000);
@@ -251,31 +243,18 @@ export class MapViewComponent implements OnInit, OnDestroy {
                     player["jobs-completed"] = parseInt(player["jobs-completed"], 10) + 1;
                     player["cash"] = parseInt(player["cash"], 10) + job["cash"];
 
-                    // tally up xp and check for level up
+                    // tally up xp
                     let totalXp = parseInt(player["total-exp"], 10);
                     let currentXp = parseInt(player["exp"], 10);
                     let currentLevel = parseInt(player["level"], 10);
                     let jobXp = job["experience"];
-                    if (currentXp + jobXp >= this.levelThresholds[currentLevel - 1]) {
-                        // level up
-                        let diff = (currentXp + jobXp) - this.levelThresholds[currentLevel - 1];
-                        currentXp = diff;
-                        currentLevel++;
 
-                        // tbd: check extra level up from xp
-                        // if (diff > this.levelThresholds[currentLevel]) // level up again
-
-                        // notify user
-                        setTimeout(() => {
-                            this.presentToast('Congratulations! You are now Level ' + currentLevel + '!', 3000, 'warning');
-                        }, 3500);
-                    } else {
-                        currentXp += jobXp;
+                    // apply and check for level up
+                    player["exp"] = currentXp + jobXp;
+                    player["total-exp"] = totalXp + jobXp;
+                    if (player["exp"] >= this.levelThresholds[currentLevel - 1]) {
+                        this.levelUp();
                     }
-                    totalXp += jobXp;
-                    player["exp"] = currentXp;
-                    player["total-exp"] = totalXp;
-                    player["level"] = currentLevel;
                 } else {
                     // game lose
                     message = 'Job failed, better luck next time.';
@@ -295,11 +274,40 @@ export class MapViewComponent implements OnInit, OnDestroy {
         return await modal.present();
     }
 
+    levelUp() {
+        // capture how far over current threshold we went
+        let exp = this.player["exp"];
+        let level = this.player["level"];
+        let diff = exp - this.levelThresholds[level - 1];
+
+        // set as new current xp - eg. 1200/1000 > 200/2500
+        exp = diff;
+        level++;
+
+        // notify user
+        setTimeout(() => {
+            this.presentToast('Congratulations! You are now Level ' + level + '!', 2000, 'warning');
+        }, 2500);
+
+        // store
+        this.player["exp"] = exp;
+        this.player["level"] = level;
+
+        // check whether can level up again
+        if (this.player["exp"] > this.levelThresholds[level - 1]) {
+            setTimeout(() => {
+                this.levelUp();
+            }, 2500)
+        }
+
+        this.save();
+    }
+
     removeJobFromCollection(id) {
         this.playerJobsCollection.splice(id, 1);
     }
 
-    // tbd: create reusable popup component
+    // tbd: maybe create reusable popup component
     createPopupContent(job, collectionIdx) {
         // create elements
         const container = document.createElement('div'),
@@ -379,6 +387,7 @@ export class MapViewComponent implements OnInit, OnDestroy {
     }
 
     createRouteControl(start, end) {
+        // only works on HTTP - PWA requires HTTPS (leave as demo)
         return new L.Routing.Control({
             autoRoute: true,
             waypoints: [
@@ -401,12 +410,6 @@ export class MapViewComponent implements OnInit, OnDestroy {
 
     addCircle(latlng, radius) {
         this.circles.push(L.circle(latlng, radius).addTo(this.map));
-    }
-
-    removeCircle(circleId) {
-        if (this.circles[circleId] != undefined) {
-            this.map.removeLayer(this.circles[circleId]);
-        };
     }
 
     clearCircles() {

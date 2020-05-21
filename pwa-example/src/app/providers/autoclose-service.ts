@@ -21,7 +21,7 @@ export class AutocloseOverlaysService {
                 return;
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
         // close popover
@@ -32,7 +32,7 @@ export class AutocloseOverlaysService {
                 return;
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
         // close modal
@@ -43,7 +43,7 @@ export class AutocloseOverlaysService {
                 return;
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
         // close side menua
@@ -54,7 +54,7 @@ export class AutocloseOverlaysService {
                 return;
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
     }
 }

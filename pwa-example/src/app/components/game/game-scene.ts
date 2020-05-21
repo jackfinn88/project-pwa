@@ -22,7 +22,6 @@ export class GameScene extends Phaser.Scene {
 
     init(): void {
         let options = (this.game as any).options;
-        console.log(options)
         this.delta = 1000;
         this.lastPacketTime = 0;
         this.packetsCaught = 0;

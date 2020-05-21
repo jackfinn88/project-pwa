@@ -1,6 +1,6 @@
 {
     "$schema": "./node_modules/@angular/service-worker/config/schema.json",
-    "index": "/dump/angular/test/pwa-example/index.html",
+    "index": "/ci301/app/pwa-example/index.html",
     "assetGroups": [
         {
             "name": "app",

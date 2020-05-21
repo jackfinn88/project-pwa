@@ -72,9 +72,6 @@
 
         <div *ngSwitchCase="'fallproof'" class="game-container fallproof-container">
             <div class="ui-overlay fallproof-overlay">
-                <ion-button (click)="onTestButtonClick()">TEST</ion-button>
-                <!--REMOVE-->
-
                 <p style="display: inline-block">Time: {{ timerText }}</p>
                 <p style="display: inline-block; position: absolute; right: 8px">Rotations left: {{ rotations }}</p>
                 <ion-progress-bar [value]="timerProgress"></ion-progress-bar>
@@ -84,10 +81,6 @@
 
         <div *ngSwitchCase="'blitz'" class="game-container blitz-container">
             <div class="ui-overlay blitz-overlay">
-
-                <ion-button (click)="onTestButtonClick()">TEST</ion-button>
-                <!--REMOVE-->
-
                 <p>Corrupted: {{ ((uiData.caught * 128) / 1000).toFixed(2) }} / {{ uiData.corrupt.toFixed(2) }}Mb</p>
                 <ion-progress-bar color="success" [value]="uiData.caughtProgress"></ion-progress-bar>
                 <p>Complete: {{ ((uiData.lost * 128) / 1000).toFixed(2) }} / {{ uiData.complete.toFixed(2) }}Mb</p>

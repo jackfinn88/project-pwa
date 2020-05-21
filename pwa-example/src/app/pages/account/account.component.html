@@ -39,7 +39,7 @@
             <ion-row>
                 <ion-col size="5">Current XP:</ion-col>
                 <ion-col *ngIf="levelThresholds[player['level']]">
-                    {{ player["exp"] + ' / ' + levelThresholds[player["level"]]}}</ion-col>
+                    {{ player["exp"] + ' / ' + levelThresholds[player["level"] - 1]}}</ion-col>
                 <ion-col *ngIf="!levelThresholds[player['level']]">Maximum Level</ion-col>
             </ion-row>
             <ion-row>

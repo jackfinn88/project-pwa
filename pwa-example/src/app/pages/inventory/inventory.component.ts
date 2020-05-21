@@ -29,12 +29,15 @@ export class InventoryComponent implements OnInit {
         this.account = JSON.parse(localStorage.getItem('account'));
         this.player = this.saveData.currentUser;
 
+        // just pull collection to mutate - reassign before updating storage
         this.pluginKeys = Object.keys(this.player["game-data"]);
         this.availablePlugins = this.pluginKeys.map((key) => {
             return this.player["game-data"][key];
         });
 
+        // some elements require bool types - for binding
         this.availablePlugins.forEach((plugin) => {
+            // convert int to bool for some properties - reassign before updating storage
             plugin.upgrades.forEach(upgrade => {
                 upgrade.level = parseInt(upgrade.level, 10);
                 upgrade.active = parseInt(upgrade.active, 10) ? true : false;
@@ -43,7 +46,7 @@ export class InventoryComponent implements OnInit {
     }
 
     ngAfterViewInit() {
-        // update descriptions here due to ngFor loops
+        // update descriptions here due to seperated ngFor loops splitting the array order
         let items = document.querySelectorAll('.description-text');
         items.forEach((item, idx) => {
             item.textContent = this.descriptions[idx];
@@ -72,7 +75,6 @@ export class InventoryComponent implements OnInit {
                 {
                     text: 'Confirm',
                     handler: () => {
-                        console.log('Confirm Okay');
                         this.confirmUpgradePurchase(pluginIdx, upgradeIdx, amount);
                     }
                 }
@@ -94,7 +96,6 @@ export class InventoryComponent implements OnInit {
     }
 
     confirmUpgradePurchase(pluginIdx, upgradeIdx, amount) {
-        console.log(this.availablePlugins[pluginIdx].upgrades[upgradeIdx]);
         let upgrade = this.availablePlugins[pluginIdx].upgrades[upgradeIdx];
         let currentLevel = parseInt(upgrade.level, 10);
         upgrade.level = currentLevel + 1;
@@ -112,16 +113,16 @@ export class InventoryComponent implements OnInit {
     }
 
     onToggleChange(pluginIdx, upgradeIdx) {
-        // only perform checks when toggle is turned on
+        // only perform check when toggle is on
         if (!this.availablePlugins[pluginIdx].upgrades[upgradeIdx].active) return;
 
         let otherIdx = upgradeIdx > 0 ? 0 : 1;
 
         // can player use both upgrades?
         if (!parseInt(this.availablePlugins[pluginIdx]["dual-use"], 10)) {
-            // if not - check whether other upgrade is active
+            // if not - check whether other upgrade is active?
             if (this.availablePlugins[pluginIdx].upgrades[otherIdx].active) {
-                // toggle not ok - ask to purchase dual-use
+                // if so - ask to purchase dual-use
                 let amount = this.prices[1];
                 let header = 'Purchase';
                 let message = 'You are currently only allowed 1 upgrade per <strong>Plug-in</strong>. Purchase dual-use for £<strong>' + amount + '</strong> to have both active?';
@@ -130,17 +131,19 @@ export class InventoryComponent implements OnInit {
                         text: 'Cancel',
                         role: 'cancel',
                         handler: () => {
+                            // purchase declined - toggle other upgrade off
                             this.availablePlugins[pluginIdx].upgrades[otherIdx].active = false;
                         }
                     },
                     {
                         text: 'Confirm',
                         handler: () => {
+                            // purchase confirmed - check cash
                             if (this.player.cash >= amount) {
-                                // confirm purchase
+                                // purchase ok
                                 this.confirmDualPurchase(pluginIdx, amount);
                             } else {
-                                // not enough cash
+                                // not enough cash - toggle other upgrade off
                                 let message = 'You do not have enough <strong>Cash</strong> to purchase this upgrade';
                                 let buttons = [{
                                     text: 'Cancel',
@@ -161,6 +164,7 @@ export class InventoryComponent implements OnInit {
 
     updateRecord() {
         this.availablePlugins.forEach((plugin, idx) => {
+            // convert some bools back to ints for db
             plugin.upgrades.forEach(upgrade => {
                 upgrade.active = upgrade.active ? 1 : 0;
             });
@@ -201,6 +205,7 @@ export class InventoryComponent implements OnInit {
             lto_difficulty: this.account["lto_difficulty"]
         }
 
+        // update db
         this._apiService.updateRecord(record).subscribe((record) => {
             // update device accounts
             let accountIdx = this.saveData.accounts.findIndex(account => account.id === this.saveData.currentUser.id);

@@ -8,7 +8,7 @@
     "start_url": "./",
     "icons": [
         {
-            "src": "assets/icons/hub-512-final.png",
+            "src": "assets/icons/hub-512-round.png",
             "sizes": "512x512",
             "type": "image/png"
         }

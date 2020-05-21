@@ -41,8 +41,6 @@ export class ViewMapComponent implements OnDestroy {
     }
 
     updateStats(event) {
-        console.log('viewMap: updateStats', event);
-
         this.player = event.player;
         this._cdr.detectChanges();
     }

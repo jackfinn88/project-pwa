@@ -13,13 +13,6 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 export class GameModalComponent implements OnInit, OnDestroy {
     @HostListener('window:message', ['$event'])
     onMessage(event) {
-        let data = JSON.parse(event.data);
-        if (data.rotate) {
-            this.onFallproofRotate();
-        } else if (data.win) {
-            this.onGameWin();
-        }
-        /*
         if (event.origin !== "https://jlf40.brighton.domains") {
             return false;
         } else {
@@ -30,7 +23,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
                 this.onGameWin();
             }
         }
-        */
     }
     @Input() job: any;
     @Input() collectionId: any;
@@ -71,7 +63,7 @@ export class GameModalComponent implements OnInit, OnDestroy {
     feedback = {};
     gameEndText;
     rotations;
-    iframeSrc: SafeResourceUrl = 'https://jlf40.brighton.domains/dump/angular/test/api/fallproof/index.html'; // tbd: update or correct for final
+    iframeSrc: SafeResourceUrl = 'https://jlf40.brighton.domains/ci301/app/fallproof/index.html';
     gameOver = false;
 
 
@@ -111,14 +103,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
 
         // get request key
         this.fullScreenKey = this.getRequestFullScreenKey();
-    }
-
-    // tbd: remove this
-    onTestButtonClick() {
-        this.onGameWin();
-        setTimeout(() => {
-            this.game = null;
-        }, 2000);
     }
 
     onPlayButtonClick() {
@@ -220,19 +204,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         let speedBaseValue = 325;
         let speed = speedBaseValue - (parseInt(this.player["game-data"].blitz.upgrades["1"].active, 10) ? upgrade02Level * 75 : 0);
 
-        console.log({
-            "data-per-hit": {
-                "level": upgrade01Level,
-                "active": this.player["game-data"].blitz.upgrades["0"].active,
-                "value": packetsPerHit,
-            },
-            "packet-velocity": {
-                "level": upgrade02Level,
-                "active": this.player["game-data"].blitz.upgrades["1"].active,
-                "value": speed,
-            }
-        });
-
         this.game.options = {
             'catch': corrupt,
             'lose': complete,
@@ -294,21 +265,6 @@ export class GameModalComponent implements OnInit, OnDestroy {
         let rotationIncrementValue = 4;
         let baseRotations = 8;
         this.rotations = baseRotations + (parseInt(this.player["game-data"].fallproof.upgrades["1"].active, 10) ? upgrade02Level * rotationIncrementValue : 0);
-
-        console.log({
-            "extra-time": {
-                "level": upgrade01Level,
-                "active": this.player["game-data"].fallproof.upgrades["0"].active,
-                "value": duration,
-                "default": baseTime
-            },
-            "extra-rotations": {
-                "level": upgrade02Level,
-                "active": this.player["game-data"].fallproof.upgrades["1"].active,
-                "value": this.rotations,
-                "default": baseRotations
-            }
-        });
 
         // update iframe src - game will pick up rotations from href
         this.iframeSrc = this.iframeSrc + '?rotations=' + this.rotations;

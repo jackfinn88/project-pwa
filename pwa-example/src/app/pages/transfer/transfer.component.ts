@@ -8,7 +8,7 @@ import { AlertController } from '@ionic/angular';
     styleUrls: ['./transfer.component.scss'],
 })
 export class TransferComponent implements OnInit {
-    baseUrl = 'https://jlf40.brighton.domains/dump/angular/test/api';
+    baseUrl = 'https://jlf40.brighton.domains/ci301/app/api';
     users;
 
     saveData;

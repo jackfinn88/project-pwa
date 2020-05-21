@@ -148,8 +148,7 @@ export class JobsComponent implements OnInit, OnDestroy {
             if (!this.renewalInProcess) {
                 this.maxJobsReached = false;
                 this._cdr.detectChanges();
-                let milliseconds = { min: 6000, max: 9000 }; // 6-9s testing - tbd: remove
-                // let milliseconds = { min: 420000, max: 840000 }; // 7-14 mins
+                let milliseconds = { min: 300000, max: 600000 }; // 5-10 mins
                 let duration = this.getRandomIntInclusive(milliseconds.min, milliseconds.max);
                 this.beginRenewal(duration);
             }
@@ -207,8 +206,7 @@ export class JobsComponent implements OnInit, OnDestroy {
 
                 // gather time data (how long job is available)
                 let currentTime = Date.now();
-                let milliseconds = { min: 30000, max: 60000 }; // 18-38s testing - tbd: remove
-                // let milliseconds = { min: 1.2e+6, max: 2.1e+6 }; // 20-35 mins
+                let milliseconds = { min: 900000, max: 1.2e+6 }; // 15-20 mins
                 let duration = this.getRandomIntInclusive(milliseconds.min, milliseconds.max);
 
                 // find available characters for player level
